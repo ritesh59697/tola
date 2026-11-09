@@ -84,6 +84,14 @@ export function Home() {
             <button className="btn" onClick={() => document.getElementById("plans")?.scrollIntoView({ behavior: "smooth" })}>See a live plan</button>
             <a className="btn btn-quiet" href="#/open">Open a plan for your shop</a>
           </div>
+          {proofs[0] && (
+            <p className="small" style={{ marginTop: 16 }}>
+              No wallet needed to check it:{" "}
+              <a href={explorerTx(proofs[0].tx)} target="_blank" rel="noreferrer">
+                see a jeweller's real attempt fail on the chain <ExternalLink size={13} className="icon-inline" aria-hidden />
+              </a>
+            </p>
+          )}
         </div>
         <GoldCard />
       </section>
@@ -92,7 +100,7 @@ export function Home() {
         <h2>When the shop shuts</h2>
         <div>
           <p className="story">
-            Millions of families save for weddings through jewellers' monthly plans. The money goes straight to the shop. When a shop fails, those families stand outside its shutters.
+            Families across India save for weddings through jewellers' monthly plans. The money goes straight to the shop. When a shop fails, those families stand outside its shutters.
           </p>
           <ul className="case-list">
             {cases.map((c) => (

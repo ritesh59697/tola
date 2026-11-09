@@ -6,7 +6,7 @@ Record after mainnet deployment. You need two accounts in QIE Wallet: **Jeweller
 
 | Time | Screen | Say |
 |---|---|---|
-| 0:00 | Home page, top | "Millions of Indian families save for weddings through a jeweller's monthly gold plan. The money goes straight to the shop. In 2019, the owners of Goodwin Jewellers reportedly vanished, owing about 700 people 21 crore rupees." |
+| 0:00 | Home page, top | "Families across India save for weddings through a jeweller's monthly gold plan. The money goes straight to the shop. In 2019, the owners of Goodwin Jewellers reportedly vanished, owing about 700 people 21 crore rupees." |
 | 0:18 | Scroll to the cases, then back to the hero | "Tola is the same gold plan, with one change: the shop can't touch your money until you have your jewellery. This is live on QIE mainnet with small demo amounts." |
 | 0:30 | Open the plan, as Customer. Point at the demo timer note | "On this demo plan, one month is one minute. Real plans use real months." |
 | 0:38 | Click Join, confirm in the wallet. Point at the passbook row | "I pay my first instalment. QIE's gold oracle sets the price, so this locks a weight of gold at today's rate. It's on my passbook, and on the chain." |

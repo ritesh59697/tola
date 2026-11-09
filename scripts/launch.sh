@@ -2,8 +2,8 @@
 # Deploys Tola and prepares the public demo, from one funded deployer wallet:
 #   1. shares QIE to the jeweller and customer wallets and swaps some into QUSDC on QIEDEX
 #   2. deploys the registry, with the price age measured from the real feed's history
-#   3. opens a demo plan and a real-months plan
-#   4. has a customer join, then makes one real failed attempt to take their money
+#   3. opens a real-months plan and a demo plan
+#   4. has a customer join the real-months plan, then makes one real failed attempt to take their money
 #   5. saves that transaction as public proof for the site
 # Set RPC to a local fork to rehearse the whole thing first.
 set -euo pipefail
@@ -12,7 +12,7 @@ set -a; source .env; set +a
 
 RPC="${RPC:-$QIE_MAINNET_RPC}"
 DEX_ROUTER="${DEX_ROUTER:-0x08cd2e72e156D8563B4351eb4065C262A9f553Ef}"
-QIE_FOR_JEWELLER="${QIE_FOR_JEWELLER:-15}"
+QIE_FOR_JEWELLER="${QIE_FOR_JEWELLER:-40}"
 QIE_FOR_CUSTOMER="${QIE_FOR_CUSTOMER:-60}"
 GAS_RESERVE_QIE="${GAS_RESERVE_QIE:-2}"
 
@@ -73,17 +73,22 @@ echo "$SCHEME"
 
 DECIMALS="$(cast call --rpc-url "$RPC" "$STABLECOIN" 'decimals()(uint8)')"
 INSTALMENT="$(python3 -c "print($SCHEME_INSTALMENT_CENTS * 10 ** $DECIMALS // 100)")"
-BOND="$(python3 -c "print($INSTALMENT * ($SCHEME_BOND_BPS + $SCHEME_BONUS_BPS) // 10000)")"
+# Exactly one instalment's requirement, so the demo plan's second instalment leaves the bond short.
+DEMO_BOND="$(python3 -c "print($INSTALMENT * ($SCHEME_BOND_BPS + $SCHEME_BONUS_BPS) // 10000)")"
+# The real-months plan's bond covers its whole first term at the flat minimum and bonus.
+REAL_BOND="$(python3 -c "print($INSTALMENT * 11 * ($SCHEME_BOND_BPS + $SCHEME_BONUS_BPS) // 10000)")"
 
-step "Jeweller posts the bond; customer joins"
-send --private-key "$JEWELLER_KEY" "$STABLECOIN" 'approve(address,uint256)' "$SCHEME" "$BOND" >/dev/null
-send --private-key "$JEWELLER_KEY" "$SCHEME" 'depositBond(uint256)' "$BOND" >/dev/null
-send --private-key "$CUSTOMER_KEY" "$STABLECOIN" 'approve(address,uint256)' "$SCHEME" "$INSTALMENT" >/dev/null
-send --private-key "$CUSTOMER_KEY" "$SCHEME" 'enrol()' >/dev/null
+step "Jeweller posts bonds; customer joins the real-months plan"
+send --private-key "$JEWELLER_KEY" "$STABLECOIN" 'approve(address,uint256)' "$SCHEME" "$DEMO_BOND" >/dev/null
+send --private-key "$JEWELLER_KEY" "$SCHEME" 'depositBond(uint256)' "$DEMO_BOND" >/dev/null
+send --private-key "$JEWELLER_KEY" "$STABLECOIN" 'approve(address,uint256)' "$REAL_SCHEME" "$REAL_BOND" >/dev/null
+send --private-key "$JEWELLER_KEY" "$REAL_SCHEME" 'depositBond(uint256)' "$REAL_BOND" >/dev/null
+send --private-key "$CUSTOMER_KEY" "$STABLECOIN" 'approve(address,uint256)' "$REAL_SCHEME" "$INSTALMENT" >/dev/null
+send --private-key "$CUSTOMER_KEY" "$REAL_SCHEME" 'enrol()' >/dev/null
 
 step "Jeweller tries to take the customer's money, on the chain"
 # This must fail. A gas limit is set so the refusal is mined instead of being caught before sending.
-PROOF_TX="$(cast send --rpc-url "$RPC" --json --private-key "$JEWELLER_KEY" --gas-limit 200000 "$SCHEME" 'collect(uint256)' 1 | python3 -c "
+PROOF_TX="$(cast send --rpc-url "$RPC" --json --private-key "$JEWELLER_KEY" --gas-limit 200000 "$REAL_SCHEME" 'collect(uint256)' 1 | python3 -c "
 import json,sys
 d=json.load(sys.stdin)
 assert str(d['status']) in ('0','0x0'), 'collect did not fail: stop and investigate'
