@@ -1,0 +1,18 @@
+{
+  "pollMs": 6000,
+  "fxUrl": "https://open.er-api.com/v6/latest/USD",
+  "fxCurrency": "INR",
+  "gramsPerTroyOunce": 31.1034768,
+  "shortTimerBelowSeconds": 86400,
+  "logChunkBlocks": 10000,
+  "simulationRange": {
+    "min": -40,
+    "max": 60,
+    "step": 1
+  },
+  "forcedRevertGasLimit": "200000",
+  "logMaxChunks": 12,
+  "swapSlippageBps": 300,
+  "swapDeadlineSeconds": 600,
+  "txDismissMs": 6000
+}

@@ -1,0 +1,69 @@
+{
+  "1990": {
+    "name": "QIE Mainnet",
+    "isTest": false,
+    "rpcUrls": [
+      "https://rpc1mainnet.qie.digital",
+      "https://rpc2mainnet.qie.digital",
+      "https://rpc3mainnet.qie.digital",
+      "https://rpc4mainnet.qie.digital",
+      "https://rpc5mainnet.qie.digital"
+    ],
+    "explorer": "https://mainnet.qie.digital",
+    "currency": {
+      "name": "QIE",
+      "symbol": "QIE",
+      "decimals": 18
+    },
+    "qieIdReverseResolver": "0x76ec8ed377cC0d36D1B48027ac7892Ec6799171E",
+    "qieIdMetadata": [
+      "0x8777d01d509D0eA71FB38F88F79867da558d5018",
+      "0xCFBcBCA93c607590b211c81C7DBcdbd7eD6CC6ED"
+    ],
+    "dexUrl": "https://www.dex.qie.digital",
+    "walletUrl": "https://www.qiewallet.me",
+    "dexRouter": "0x08cd2e72e156D8563B4351eb4065C262A9f553Ef",
+    "explorerApi": "https://mainnet.qie.digital/api/v2"
+  },
+  "1983": {
+    "name": "QIE Testnet",
+    "isTest": true,
+    "rpcUrls": [
+      "https://rpc1testnet.qie.digital"
+    ],
+    "explorer": "https://testnet.qie.digital",
+    "currency": {
+      "name": "QIE",
+      "symbol": "QIE",
+      "decimals": 18
+    },
+    "qieIdReverseResolver": null,
+    "qieIdMetadata": [],
+    "dexUrl": null,
+    "walletUrl": "https://www.qiewallet.me",
+    "dexRouter": null,
+    "explorerApi": "https://testnet.qie.digital/api/v2"
+  },
+  "31990": {
+    "name": "Local fork of QIE Mainnet",
+    "isTest": true,
+    "rpcUrls": [
+      "http://127.0.0.1:8545"
+    ],
+    "explorer": "https://mainnet.qie.digital",
+    "currency": {
+      "name": "QIE",
+      "symbol": "QIE",
+      "decimals": 18
+    },
+    "qieIdReverseResolver": "0x76ec8ed377cC0d36D1B48027ac7892Ec6799171E",
+    "qieIdMetadata": [
+      "0x8777d01d509D0eA71FB38F88F79867da558d5018",
+      "0xCFBcBCA93c607590b211c81C7DBcdbd7eD6CC6ED"
+    ],
+    "dexUrl": "https://www.dex.qie.digital",
+    "walletUrl": "https://www.qiewallet.me",
+    "dexRouter": "0x08cd2e72e156D8563B4351eb4065C262A9f553Ef",
+    "explorerApi": null
+  }
+}
