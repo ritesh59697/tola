@@ -20,12 +20,20 @@ export function usePolled<T>(read: () => Promise<T>, deps: unknown[]) {
   const latest = useRef(read);
   latest.current = read;
 
+  const startedReads = useRef(0);
+  const appliedRead = useRef(0);
+
   const refresh = useCallback(async () => {
+    // A slow older read must not overwrite a newer one, or the page would show stale state after a transaction.
+    const thisRead = ++startedReads.current;
     try {
       const value = await latest.current();
+      if (thisRead < appliedRead.current) return;
+      appliedRead.current = thisRead;
       setData(value);
       setError(null);
     } catch (e) {
+      if (thisRead < appliedRead.current) return;
       console.warn("Read failed; keeping the last good value.", e);
       setError((e as Error).message);
     }

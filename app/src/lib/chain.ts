@@ -131,14 +131,19 @@ function toEntry(topics: string[], data: string, blockNumber: number, hash: stri
 async function logsFromExplorer(address: string): Promise<HistoryEntry[] | null> {
   if (!network.explorerApi) return null;
   try {
-    const response = await fetch(`${network.explorerApi}/addresses/${address}/logs`);
-    if (!response.ok) return null;
-    const body = await response.json();
     const entries: HistoryEntry[] = [];
-    for (const item of body.items ?? []) {
-      const topics = (item.topics as (string | null)[]).filter((t): t is string => Boolean(t));
-      const entry = toEntry(topics, item.data, item.block_number, item.transaction_hash ?? item.tx_hash, item.index);
-      if (entry) entries.push(entry);
+    let query = "";
+    for (let page = 0; page < settings.logMaxChunks; page++) {
+      const response = await fetch(`${network.explorerApi}/addresses/${address}/logs${query}`);
+      if (!response.ok) return null;
+      const body = await response.json();
+      for (const item of body.items ?? []) {
+        const topics = (item.topics as (string | null)[]).filter((t): t is string => Boolean(t));
+        const entry = toEntry(topics, item.data, item.block_number, item.transaction_hash ?? item.tx_hash, item.index);
+        if (entry) entries.push(entry);
+      }
+      if (!body.next_page_params) break;
+      query = `?${new URLSearchParams(body.next_page_params).toString()}`;
     }
     return entries;
   } catch {

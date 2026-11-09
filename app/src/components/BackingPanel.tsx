@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FlaskConical } from "lucide-react";
 import { settings } from "../config";
-import { dateTime, duration, money, moneyFine, pct } from "../lib/format";
+import { dateTime, duration, money, moneyFine, pct, usdPrice } from "../lib/format";
 import { useNow } from "../lib/hooks";
 import type { SchemeData } from "../lib/hooks";
 
@@ -20,8 +20,8 @@ export function StatusPill({ scheme, now }: { scheme: SchemeData; now: number })
   if (status === "default") return <span className="pill pill-bad">In default</span>;
   if (status === "repair-over") return <span className="pill pill-bad">Repair time over</span>;
   if (status === "flagged") return <span className="pill pill-warn">Flagged, {duration(scheme.curesBy - now)} to repair</span>;
-  if (status === "under") return <span className="pill pill-warn">Under-backed</span>;
-  if (status === "empty") return <span className="pill pill-quiet">No customers yet</span>;
+  if (status === "under") return <span className="pill pill-warn">Bond too low</span>;
+  if (status === "empty") return <span className="pill pill-quiet">{scheme.plans.length ? "No money locked" : "No customers yet"}</span>;
   return <span className="pill pill-ok">Fully backed</span>;
 }
 
@@ -69,9 +69,13 @@ export function BackingPanel({ scheme }: { scheme: SchemeData }) {
         {b.lockedPrincipal === 0n ? "–" : pct(p.coverageBps)}
       </div>
       <p className="small muted">
-        {b.lockedPrincipal === 0n
-          ? "Backing appears here when the first customer joins."
-          : "Money held by the contract, against everything owed to customers."}
+        {b.lockedPrincipal !== 0n
+          ? "Money held by the contract, against everything owed to customers."
+          : scheme.defaulted
+            ? "Nothing is owed: every customer's money has been claimed."
+            : scheme.plans.length
+              ? "No customer money is locked right now."
+              : "Backing appears here when the first customer joins."}
       </p>
 
       <div className="bar" role="img" aria-label={`Instalments ${share(b.lockedPrincipal)}%, bond ${share(b.bond)}%, owed marker at ${share(p.liability)}%`}>
@@ -110,7 +114,7 @@ export function BackingPanel({ scheme }: { scheme: SchemeData }) {
         <dt>Held by the contract</dt>
         <dd>{moneyFine(scheme.tokenBalance, decimals)}</dd>
         <dt>Gold price per ounce</dt>
-        <dd>${(Number(b.price) / 10 ** scheme.feedDecimals).toLocaleString("en-US", { maximumFractionDigits: 2 })}</dd>
+        <dd>{usdPrice(b.price, scheme.feedDecimals)}</dd>
       </dl>
       <p className={`xs ${b.priceFresh ? "muted" : ""}`} style={{ marginTop: 8, color: b.priceFresh ? undefined : "var(--destructive)" }} title={dateTime(b.priceUpdatedAt)}>
         {b.priceFresh ? "From QIE Oracle" : "QIE Oracle's price is too old to use"}, updated {duration(priceAge)} ago.

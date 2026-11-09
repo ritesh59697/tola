@@ -144,6 +144,7 @@ button, input { font: inherit; }
 .scheme-head { padding: var(--s6) 0 var(--s5); }
 .scheme-head h1 { font-size: var(--text-2xl); margin: var(--s2) 0; }
 .terms-line { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s4); font-size: var(--text-sm); color: var(--text-muted); }
+.timer-note svg { flex: none; }
 .timer-note { margin-top: var(--s3); display: inline-flex; align-items: center; gap: var(--s2); padding: var(--s1) var(--s3); background: var(--warning-tint); color: var(--warning); font-size: var(--text-sm); border-radius: var(--r); }
 
 .scheme-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: var(--s5); align-items: start; }

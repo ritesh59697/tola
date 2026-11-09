@@ -8,9 +8,11 @@ export function money(value: bigint, decimals: number, digits = 2): string {
   return `$${n.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
 }
 
-/** Small amounts lose their meaning at two places, so they keep four. */
-export const moneyFine = (value: bigint, decimals: number) =>
-  money(value, decimals, value !== 0n && Number(formatUnits(value, decimals)) < 10 ? 4 : 2);
+/** Shows two places, unless that would hide a small amount's real value. */
+export function moneyFine(value: bigint, decimals: number): string {
+  const n = Number(formatUnits(value, decimals));
+  return money(value, decimals, Math.abs(n - Math.round(n * 100) / 100) < 0.00005 ? 2 : 4);
+}
 
 export const ozToGrams = (goldOz: bigint) => Number(formatUnits(goldOz, 18)) * settings.gramsPerTroyOunce;
 
@@ -19,6 +21,11 @@ export function grams(goldOz: bigint): string {
   if (g === 0) return "0 g";
   if (g < 1) return `${(g * 1000).toLocaleString("en-US", { maximumFractionDigits: 2 })} mg`;
   return `${g.toLocaleString("en-US", { maximumFractionDigits: 3 })} g`;
+}
+
+export function usdPrice(price: bigint, feedDecimals: number): string {
+  const value = Number(price) / 10 ** feedDecimals;
+  return "$" + value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 export const pct = (bps: number | bigint, digits = 0) => `${(Number(bps) / 100).toFixed(digits)}%`;

@@ -6,3 +6,5 @@ dist/
 .DS_Store
 contracts/deployments/31990.json
 contracts/deployments/proofs-31990.json
+contracts/lib/
+contracts/.env

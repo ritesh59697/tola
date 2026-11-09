@@ -39,7 +39,7 @@ export function Watch({ scheme, onChange }: { scheme: SchemeData; onChange: () =
               : "The bond meets the requirement, so the contract would refuse a flag."}
           </div>
           <div className="btn-row">
-            <button className="btn" disabled={!connected || !short} onClick={() => act("Flag as under-backed", "flagUnderbacked")}>Flag as under-backed</button>
+            <button className="btn" disabled={!connected || !short} onClick={() => act("Flag the low bond", "flagUnderbacked")}>Flag the low bond</button>
           </div>
         </div>
       )}

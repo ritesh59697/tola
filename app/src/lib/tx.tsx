@@ -17,7 +17,11 @@ export interface TxState {
   message?: string;
 }
 
-const errorInterface = new Interface([...schemeAbi, ...registryAbi].filter((f) => f.startsWith("error")));
+const errorInterface = new Interface([
+  ...[...schemeAbi, ...registryAbi].filter((f) => f.startsWith("error")),
+  "error ERC20InsufficientBalance(address sender,uint256 balance,uint256 needed)",
+  "error ERC20InsufficientAllowance(address spender,uint256 allowance,uint256 needed)",
+]);
 
 /** Turns a contract's refusal into a sentence a customer can read. */
 function explainRefusal(name: string, args: readonly unknown[]): string {
@@ -37,7 +41,7 @@ function explainRefusal(name: string, args: readonly unknown[]): string {
     case "SchemeNotInDefault":
       return "This scheme is not in default.";
     case "SchemeUnderReview":
-      return `This scheme is flagged as under-backed. The jeweller has ${wait(0)} left to repair it.`;
+      return `This scheme is flagged for a low bond. The jeweller has ${wait(0)} left to repair it.`;
     case "StalePrice":
       return "The gold price from the oracle is too old to use. Please try again after its next update.";
     case "InvalidPrice":
@@ -70,6 +74,10 @@ function explainRefusal(name: string, args: readonly unknown[]): string {
       return "Some customers have not claimed yet.";
     case "TermsOutsideLimits":
       return "These terms are outside the limits every scheme must respect.";
+    case "ERC20InsufficientBalance":
+      return "This wallet does not hold enough for this payment.";
+    case "ERC20InsufficientAllowance":
+      return "The payment was not approved in your wallet. Please try again.";
     case "ZeroAmount":
       return "Enter an amount above zero.";
     default:
@@ -198,7 +206,18 @@ export function TxProvider({ children, onSettled }: { children: ReactNode; onSet
     async (tokenAddress, spender, amount, label, address, abi, method, args = []) => {
       const signer = await getSigner();
       const owner = await signer.getAddress();
-      const allowance: bigint = await new Contract(tokenAddress, erc20Abi, signer).allowance(owner, spender);
+      const tokenContract = new Contract(tokenAddress, erc20Abi, signer);
+      const balance: bigint = await tokenContract.balanceOf(owner);
+      if (balance < amount) {
+        // Say so now, before asking the wallet to sign an approval that could not help.
+        const id = nextId++;
+        setTransactions((list) => [
+          ...list.slice(-2),
+          { id, label, phase: "failed", message: "This wallet does not hold enough for this payment." },
+        ]);
+        return false;
+      }
+      const allowance: bigint = await tokenContract.allowance(owner, spender);
       if (allowance < amount) {
         const approved = await run("Allow this payment", tokenAddress, erc20Abi, "approve", [spender, amount]);
         if (!approved) return false;

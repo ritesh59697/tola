@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { BookOpen } from "lucide-react";
 import { schemeAbi } from "../lib/abi";
-import { dateTime, duration, grams, money, moneyFine, ozToGrams, pct } from "../lib/format";
+import { dateTime, duration, grams, money, moneyFine, ozToGrams, pct, usdPrice } from "../lib/format";
 import { PlanState, useNativeBalance, useNow, useTokenBalance } from "../lib/hooks";
 import type { Plan, SchemeData } from "../lib/hooks";
 import type { HistoryEntry } from "../lib/chain";
@@ -23,7 +23,7 @@ const planStateLabel: Record<PlanState, string> = {
   [PlanState.ClaimedInDefault]: "Claimed after default",
 };
 
-function PlanView({ scheme, plan, history, onChange }: { scheme: SchemeData; plan: Plan; history: HistoryEntry[]; onChange: () => void }) {
+function PlanView({ scheme, plan, history, lowOnStable, onChange }: { scheme: SchemeData; plan: Plan; history: HistoryEntry[]; lowOnStable: boolean; onChange: () => void }) {
   const { run, approveThenRun } = useTx();
   const now = useNow();
   const { terms, decimals, backing, feedDecimals } = scheme;
@@ -39,6 +39,14 @@ function PlanView({ scheme, plan, history, onChange }: { scheme: SchemeData; pla
   const flagged = scheme.flaggedAt !== 0;
 
   const rows = history.filter((h) => h.name === "InstalmentPaid" && Number(h.args.planId) === plan.id);
+  const payout = history.find((h) => Number(h.args.planId) === plan.id && ["ClaimedInDefault", "CashedOut", "Exited"].includes(h.name));
+  const received = !payout
+    ? null
+    : payout.name === "ClaimedInDefault"
+      ? (payout.args.principal as bigint) + (payout.args.fromBond as bigint)
+      : payout.name === "CashedOut"
+        ? (payout.args.paid as bigint)
+        : (payout.args.refund as bigint);
 
   const claim = async () => {
     if (scheme.tallyCursor <= scheme.plans.length) {
@@ -59,7 +67,11 @@ function PlanView({ scheme, plan, history, onChange }: { scheme: SchemeData; pla
       <div className="stat-trio">
         <div><div className="label">Paid in</div><div className="value">{moneyFine(plan.principal, decimals)}</div></div>
         <div><div className="label">Gold locked</div><div className="value gold-figure">{grams(plan.goldOz)}</div></div>
-        <div><div className="label">Worth now</div><div className="value">{moneyFine(goldValue, decimals)}</div></div>
+        {active ? (
+          <div><div className="label">Worth now</div><div className="value">{moneyFine(goldValue, decimals)}</div></div>
+        ) : (
+          <div><div className="label">Paid back to you</div><div className="value">{received !== null ? moneyFine(received, decimals) : "–"}</div></div>
+        )}
       </div>
 
       <div className="table-scroll">
@@ -74,7 +86,7 @@ function PlanView({ scheme, plan, history, onChange }: { scheme: SchemeData; pla
                 <td className="mono">{String(row.args.paidCount)}/{terms.instalmentCount}</td>
                 <td>{row.timestamp ? dateTime(row.timestamp) : ""}</td>
                 <td className="num">{money(row.args.amount as bigint, decimals)}</td>
-                <td className="num">${(Number(row.args.price) / 10 ** feedDecimals).toLocaleString("en-US", { maximumFractionDigits: 2 })}</td>
+                <td className="num">{usdPrice(row.args.price as bigint, feedDecimals)}</td>
                 <td className="num gold-figure">{grams(row.args.goldOz as bigint)}</td>
               </tr>
             ))}
@@ -96,7 +108,7 @@ function PlanView({ scheme, plan, history, onChange }: { scheme: SchemeData; pla
         <>
           {flagged && (
             <div className="notice notice-warn">
-              This scheme is flagged as under-backed. New payments are paused, and you can leave now with no fee.
+              This scheme is flagged because the jeweller's bond is too low. New payments are paused, and you can leave now with no fee.
             </div>
           )}
           {!fullyPaid && !flagged && (
@@ -108,6 +120,7 @@ function PlanView({ scheme, plan, history, onChange }: { scheme: SchemeData; pla
               <div className="btn-row">
                 <button
                   className="btn"
+                  disabled={lowOnStable}
                   onClick={() => void approveThenRun(scheme.stablecoin, scheme.address, terms.instalment, `Pay instalment ${plan.paidCount + 1}`, scheme.address, abi, "payInstalment", [plan.id]).then(onChange)}
                 >
                   Pay instalment {plan.paidCount + 1}: {money(terms.instalment, decimals)}
@@ -179,7 +192,7 @@ export function Passbook({ scheme, history, onChange }: { scheme: SchemeData; hi
   return (
     <div className="stack">
       {shown.map((plan) => (
-        <PlanView key={plan.id} scheme={scheme} plan={plan} history={history} onChange={onChange} />
+        <PlanView key={plan.id} scheme={scheme} plan={plan} history={history} lowOnStable={lowOnStable} onChange={onChange} />
       ))}
       {mine.length > shown.length && (
         <button className="link-button small" style={{ alignSelf: "flex-start" }} onClick={() => setShowAll(true)}>Show all {mine.length} of your plans</button>
@@ -196,17 +209,19 @@ export function Passbook({ scheme, history, onChange }: { scheme: SchemeData; hi
           {!scheme.backing.priceFresh && (
             <div className="notice notice-warn">The oracle's gold price is too old to lock in. Joining opens again after its next update.</div>
           )}
-          {scheme.flaggedAt !== 0 && !scheme.defaulted && <div className="notice notice-warn">This scheme is flagged as under-backed, so it is not taking new customers.</div>}
-          {scheme.defaulted && <div className="notice notice-bad">This scheme is in default and is closed to new customers.</div>}
-          <div className="btn-row">
-            <button
-              className="btn"
-              disabled={!canJoin || lowOnStable}
-              onClick={() => void approveThenRun(scheme.stablecoin, scheme.address, terms.instalment, "Join and pay instalment 1", scheme.address, abi, "enrol").then(onChange)}
-            >
-              Join: pay {money(terms.instalment, decimals)}
-            </button>
-          </div>
+          {scheme.flaggedAt !== 0 && !scheme.defaulted && <div className="notice notice-warn">This scheme is flagged for a low bond, so it is not taking new customers.</div>}
+          {scheme.defaulted && <div className="notice">This scheme is in default and is closed to new customers.</div>}
+          {!scheme.defaulted && (
+            <div className="btn-row">
+              <button
+                className="btn"
+                disabled={!canJoin || lowOnStable}
+                onClick={() => void approveThenRun(scheme.stablecoin, scheme.address, terms.instalment, "Join and pay instalment 1", scheme.address, abi, "enrol").then(onChange)}
+              >
+                Join: pay {money(terms.instalment, decimals)}
+              </button>
+            </div>
+          )}
         </div>
       )}
 

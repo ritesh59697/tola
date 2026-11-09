@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { ReactNode } from "react";
 import { BrowserProvider, toBeHex } from "ethers";
 import type { Eip1193Provider, JsonRpcSigner } from "ethers";
-import { chainId, network } from "../config";
+import { chainId, network, settings } from "../config";
 
 interface WalletInfo {
   name: string;
@@ -146,7 +146,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   const getSigner = useCallback(async () => {
     if (!active.current) throw new Error("Connect your wallet first.");
-    return new BrowserProvider(active.current.provider).getSigner();
+    const provider = new BrowserProvider(active.current.provider);
+    provider.pollingInterval = settings.walletPollMs;
+    return provider.getSigner();
   }, []);
 
   const value = useMemo<WalletState>(

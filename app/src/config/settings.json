@@ -1,5 +1,6 @@
 {
   "pollMs": 6000,
+  "walletPollMs": 1000,
   "fxUrl": "https://open.er-api.com/v6/latest/USD",
   "fxCurrency": "INR",
   "gramsPerTroyOunce": 31.1034768,

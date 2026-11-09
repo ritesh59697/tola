@@ -15,7 +15,7 @@ function describe(entry: HistoryEntry, decimals: number): string {
     case "Collected": return `Plan ${a.planId}: jeweller collected ${m(a.principal)} after confirmation`;
     case "Exited": return `Plan ${a.planId}: customer left, refunded ${m(a.refund)}`;
     case "CashedOut": return `Plan ${a.planId}: not delivered, customer paid ${m(a.paid)}`;
-    case "Flagged": return `Flagged as under-backed: bond ${m(a.bond)}, required ${m(a.requiredBond)}`;
+    case "Flagged": return `Flagged for a low bond: ${m(a.bond)} held, ${m(a.requiredBond)} required`;
     case "FlagCleared": return `Flag cleared: bond ${m(a.bond)}, required ${m(a.requiredBond)}`;
     case "Defaulted": return `Default declared, with bond at ${m(a.bond)}`;
     case "ClaimedInDefault": return `Plan ${a.planId}: customer claimed ${m(a.principal)} principal and ${m(a.fromBond)} from the bond`;
