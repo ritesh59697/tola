@@ -12,7 +12,9 @@ This makes three fresh wallets, saves them to `contracts/.env` (never committed)
 
 ## 2. Fund it
 
-Send **105 QIE** on QIE Mainnet (chain 1990) to the printed address. At about $0.11 per QIE, that's about $12. The script swaps most of it into QUSDC for the demo, and what's left stays in the wallets.
+Send **at least 5.8 QIE** on QIE Mainnet (chain 1990) to the printed address; about 7 QIE gives a little spare. At about $0.12 per QIE, that's under $1. Instalments are 5 cents, so the demo needs very little, and gas costs a fraction of a cent. The script swaps most of it into QUSDC.
+
+When withdrawing from an exchange, pick the QIE Mainnet network and check it is chain 1990. Older listings of chain IDs 5656 and 9731 are retired.
 
 Don't reuse a wallet that holds your savings.
 

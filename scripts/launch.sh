@@ -6,23 +6,40 @@
 #   4. has a customer join the real-months plan, then makes one real failed attempt to take their money
 #   5. saves that transaction as public proof for the site
 # Set RPC to a local fork to rehearse the whole thing first.
-set -euo pipefail
+set -Eeuo pipefail
+# Report where it stopped. Only the line number is printed, because commands here carry private keys.
+trap 'echo "Stopped at line $LINENO of scripts/launch.sh. Nothing after that ran." >&2' ERR
 cd "$(dirname "$0")/../contracts"
+
+# Public RPC nodes sometimes drop a request. Reads are safe to repeat, so they get a few tries.
+# Transactions are never retried here, because a repeat could send twice.
+rpc_read() {
+  local attempt out
+  for attempt in 1 2 3 4 5; do
+    if out="$("$@" 2>/dev/null)"; then printf '%s\n' "$out"; return 0; fi
+    sleep "$attempt"
+  done
+  echo "A read from the chain failed five times. Check your connection and the RPC, then run this again." >&2
+  return 1
+}
 set -a; source .env; set +a
 
 RPC="${RPC:-$QIE_MAINNET_RPC}"
 DEX_ROUTER="${DEX_ROUTER:-0x08cd2e72e156D8563B4351eb4065C262A9f553Ef}"
-QIE_FOR_JEWELLER="${QIE_FOR_JEWELLER:-40}"
-QIE_FOR_CUSTOMER="${QIE_FOR_CUSTOMER:-60}"
-GAS_RESERVE_QIE="${GAS_RESERVE_QIE:-2}"
+# Sized for a budget of about $1. Gas on QIE costs a tiny fraction of a cent per transaction.
+QIE_FOR_JEWELLER="${QIE_FOR_JEWELLER:-2}"
+QIE_FOR_CUSTOMER="${QIE_FOR_CUSTOMER:-3.5}"
+GAS_RESERVE_QIE="${GAS_RESERVE_QIE:-0.3}"
+DEPLOY_RESERVE_QIE="${DEPLOY_RESERVE_QIE:-0.3}"
+REAL_SCHEME_COUNT="${REAL_SCHEME_COUNT:-11}"
 
 DEPLOYER="$(cast wallet address --private-key "$DEPLOYER_KEY")"
 JEWELLER="$(cast wallet address --private-key "$JEWELLER_KEY")"
 CUSTOMER="$(cast wallet address --private-key "$CUSTOMER_KEY")"
-CHAIN_ID="$(cast chain-id --rpc-url "$RPC")"
+CHAIN_ID="$(rpc_read cast chain-id --rpc-url "$RPC")"
 
-balance="$(cast balance --rpc-url "$RPC" "$DEPLOYER" --ether)"
-need="$(python3 -c "print($QIE_FOR_JEWELLER + $QIE_FOR_CUSTOMER + 1)")"
+balance="$(rpc_read cast balance --rpc-url "$RPC" "$DEPLOYER" --ether)"
+need="$(python3 -c "print($QIE_FOR_JEWELLER + $QIE_FOR_CUSTOMER + $DEPLOY_RESERVE_QIE)")"
 if ! python3 -c "import sys; sys.exit(0 if $balance >= $need else 1)"; then
   echo "Deployer $DEPLOYER holds $balance QIE and needs at least $need."
   exit 1
@@ -34,14 +51,14 @@ send() { cast send --rpc-url "$RPC" --json "$@" | python3 -c "import json,sys;d=
 
 swap_for_stable() { # key, wallet, QIE amount
   local wrapped path quote minimum deadline now
-  wrapped="$(cast call --rpc-url "$RPC" "$DEX_ROUTER" 'WETH()(address)')"
+  wrapped="$(rpc_read cast call --rpc-url "$RPC" "$DEX_ROUTER" 'WETH()(address)')"
   path="[$wrapped,$STABLECOIN]"
-  quote="$(cast call --rpc-url "$RPC" "$DEX_ROUTER" 'getAmountsOut(uint256,address[])(uint256[])' "$(cast to-wei "$3")" "$path" | tr -d '[]' | awk -F', ' '{print $NF}' | cut -d' ' -f1)"
+  quote="$(rpc_read cast call --rpc-url "$RPC" "$DEX_ROUTER" 'getAmountsOut(uint256,address[])(uint256[])' "$(cast to-wei "$3")" "$path" | tr -d '[]' | awk -F', ' '{print $NF}' | cut -d' ' -f1)"
   minimum="$(python3 -c "print($quote * 97 // 100)")"
-  now="$(cast block --rpc-url "$RPC" latest --field timestamp)"
+  now="$(rpc_read cast block --rpc-url "$RPC" latest --field timestamp)"
   deadline="$(python3 -c "print($now + 600)")"
   send --private-key "$1" --value "$(cast to-wei "$3")" "$DEX_ROUTER" 'swapExactETHForTokens(uint256,address[],address,uint256)' "$minimum" "$path" "$2" "$deadline" >/dev/null
-  echo "Swapped $3 QIE to about $(python3 -c "print($quote / 10 ** $(cast call --rpc-url "$RPC" "$STABLECOIN" 'decimals()(uint8)'))") QUSDC for $2"
+  echo "Swapped $3 QIE to about $(python3 -c "print($quote / 10 ** $(rpc_read cast call --rpc-url "$RPC" "$STABLECOIN" 'decimals()(uint8)'))") QUSDC for $2"
 }
 
 step "Sharing out QIE"
@@ -60,7 +77,7 @@ echo "Registry $REGISTRY"
 last_scheme() { cast call --rpc-url "$RPC" "$REGISTRY" 'schemesOf(address)(address[])' "$JEWELLER" | tr -d '[]' | awk -F', ' '{print $NF}'; }
 
 step "Opening a real-months plan"
-SCHEME_NAME="Asha Jewellers, 11 months" SCHEME_INSTALMENT_COUNT=11 SCHEME_PERIOD=2592000 SCHEME_GRACE=604800 \
+SCHEME_NAME="Asha Jewellers, $REAL_SCHEME_COUNT months" SCHEME_INSTALMENT_COUNT=$REAL_SCHEME_COUNT SCHEME_PERIOD=2592000 SCHEME_GRACE=604800 \
   SCHEME_DELIVERY_WINDOW=2592000 SCHEME_CURE_WINDOW=259200 \
   forge script script/OpenScheme.s.sol --rpc-url "$RPC" --broadcast --slow --silent
 REAL_SCHEME="$(last_scheme)"
@@ -71,12 +88,12 @@ forge script script/OpenScheme.s.sol --rpc-url "$RPC" --broadcast --slow --silen
 SCHEME="$(last_scheme)"
 echo "$SCHEME"
 
-DECIMALS="$(cast call --rpc-url "$RPC" "$STABLECOIN" 'decimals()(uint8)')"
+DECIMALS="$(rpc_read cast call --rpc-url "$RPC" "$STABLECOIN" 'decimals()(uint8)')"
 INSTALMENT="$(python3 -c "print($SCHEME_INSTALMENT_CENTS * 10 ** $DECIMALS // 100)")"
 # Exactly one instalment's requirement, so the demo plan's second instalment leaves the bond short.
 DEMO_BOND="$(python3 -c "print($INSTALMENT * ($SCHEME_BOND_BPS + $SCHEME_BONUS_BPS) // 10000)")"
 # The real-months plan's bond covers its whole first term at the flat minimum and bonus.
-REAL_BOND="$(python3 -c "print($INSTALMENT * 11 * ($SCHEME_BOND_BPS + $SCHEME_BONUS_BPS) // 10000)")"
+REAL_BOND="$(python3 -c "print($INSTALMENT * $REAL_SCHEME_COUNT * ($SCHEME_BOND_BPS + $SCHEME_BONUS_BPS) // 10000)")"
 
 step "Jeweller posts bonds; customer joins the real-months plan"
 send --private-key "$JEWELLER_KEY" "$STABLECOIN" 'approve(address,uint256)' "$SCHEME" "$DEMO_BOND" >/dev/null
