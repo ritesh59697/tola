@@ -11,7 +11,7 @@
 
 Track: **Commerce & Real World**. QIE Hackathon 3.0. Built by Ritesh, a student, solo.
 
-The demo video was recorded by script on the live site against QIE Mainnet, with a synthetic voice. Every transaction in it is real; see [scripts/video](scripts/video).
+The demo video was recorded by script on the live site against QIE Mainnet, with a synthetic voice and captions. Every transaction in it is real; see [scripts/video](scripts/video).
 
 ![QIE Mainnet explorer: the jeweller's wallet failed to call collect on a TolaScheme plan](docs/refused-mainnet.png)
 
