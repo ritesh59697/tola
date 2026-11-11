@@ -4,12 +4,12 @@
 
 | | |
 |---|---|
-| Live app | `LIVE_APP_URL` |
+| Live app | https://ritesh59697.github.io/tola/ |
 | Demo video | `VIDEO_URL` |
 | Registry on QIE Mainnet | `REGISTRY_EXPLORER_URL` |
 | A jeweller's attempt failing on-chain | `FAILED_TX_EXPLORER_URL` |
 
-Track: **Commerce & Real World**. QIE Hackathon 3.0.
+Track: **Commerce & Real World**. QIE Hackathon 3.0. Built by Ritesh, a student, solo.
 
 ![The contract refusing a jeweller's attempt to take a customer's instalments](docs/refused.jpg)
 
@@ -88,7 +88,7 @@ This is a hackathon project. The contracts have no outside audit, and no real je
 
 ## Built with AI assistance
 
-Built with Claude Code. The team member reviewed the code and can explain and maintain it, as QIE's FAQ asks. See [the walkthrough](docs/WALKTHROUGH.md).
+Built with Claude Code. Ritesh reviewed the code and can explain and maintain it, as QIE's FAQ asks. See [the walkthrough](docs/WALKTHROUGH.md).
 
 ## Run it
 
