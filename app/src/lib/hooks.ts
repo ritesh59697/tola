@@ -13,6 +13,23 @@ export function useNow() {
   return now;
 }
 
+/**
+ * The chain's own clock: the latest block's timestamp. Time-gated actions use it rather than the browser's clock,
+ * because the contract checks block.timestamp, which can trail the browser by a block or more.
+ * Null until the first read.
+ */
+export function useChainNow() {
+  const [chainNow, setChainNow] = useState<number | null>(null);
+  useEffect(() => {
+    let live = true;
+    const read = () => reader.getBlock("latest").then((b) => { if (live && b) setChainNow(b.timestamp); }).catch(() => {});
+    void read();
+    const timer = setInterval(read, settings.walletPollMs);
+    return () => { live = false; clearInterval(timer); };
+  }, []);
+  return chainNow;
+}
+
 /** Runs a read now and on a timer. Keeps the last good value through a failed poll. */
 export function usePolled<T>(read: () => Promise<T>, deps: unknown[]) {
   const [data, setData] = useState<T | null>(null);

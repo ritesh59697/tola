@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { BookOpen } from "lucide-react";
 import { schemeAbi } from "../lib/abi";
 import { dateTime, duration, grams, money, moneyFine, ozToGrams, pct, usdPrice } from "../lib/format";
-import { PlanState, useNativeBalance, useNow, useTokenBalance } from "../lib/hooks";
+import { PlanState, useChainNow, useNativeBalance, useNow, useTokenBalance } from "../lib/hooks";
 import type { Plan, SchemeData } from "../lib/hooks";
 import type { HistoryEntry } from "../lib/chain";
 import { useTx } from "../lib/tx";
@@ -26,6 +26,8 @@ const planStateLabel: Record<PlanState, string> = {
 function PlanView({ scheme, plan, history, lowOnStable, onChange }: { scheme: SchemeData; plan: Plan; history: HistoryEntry[]; lowOnStable: boolean; onChange: () => void }) {
   const { run, approveThenRun } = useTx();
   const now = useNow();
+  // Gates use the chain's clock, so a button only appears once the contract will accept it.
+  const chainNow = useChainNow() ?? 0;
   const { terms, decimals, backing, feedDecimals } = scheme;
   const active = plan.state === PlanState.Active;
 
@@ -34,7 +36,7 @@ function PlanView({ scheme, plan, history, lowOnStable, onChange }: { scheme: Sc
   const fullyPaid = plan.paidCount >= terms.instalmentCount;
   const nextDue = plan.startedAt + plan.paidCount * terms.period;
   const lastDue = nextDue + terms.gracePeriod;
-  const matured = now >= plan.maturesAt;
+  const matured = chainNow >= plan.maturesAt;
   const deliveryCloses = plan.maturesAt + terms.deliveryWindow;
   const flagged = scheme.flaggedAt !== 0;
 
@@ -112,10 +114,10 @@ function PlanView({ scheme, plan, history, lowOnStable, onChange }: { scheme: Sc
             </div>
           )}
           {!fullyPaid && !flagged && (
-            now > lastDue ? (
+            chainNow > lastDue ? (
               <div className="notice">The time to pay instalment {plan.paidCount + 1} has passed. Your gold stays locked, and the plan's bonus no longer applies.</div>
-            ) : now < nextDue ? (
-              <div className="notice">Instalment {plan.paidCount + 1} opens in <span className="mono">{duration(nextDue - now)}</span>.</div>
+            ) : chainNow < nextDue ? (
+              <div className="notice">Instalment {plan.paidCount + 1} opens in <span className="mono">{duration(Math.max(0, nextDue - now))}</span>.</div>
             ) : (
               <div className="btn-row">
                 <button
@@ -129,14 +131,14 @@ function PlanView({ scheme, plan, history, lowOnStable, onChange }: { scheme: Sc
             )
           )}
 
-          {matured && now <= deliveryCloses && (
+          {matured && chainNow <= deliveryCloses && (
             <div className="notice">
               At the counter? Confirm once you have your jewellery. That is the only thing that releases this money to the jeweller.
-              If nothing is delivered in <span className="mono">{duration(deliveryCloses - now)}</span>, you can take the gold value in cash instead.
+              If nothing is delivered in <span className="mono">{duration(Math.max(0, deliveryCloses - now))}</span>, you can take the gold value in cash instead.
             </div>
           )}
           {!matured && (
-            <p className="small muted">Matures in <span className="mono">{duration(plan.maturesAt - now)}</span>. Then collect {grams(plan.goldOz)} of jewellery{fullyPaid ? ` plus a ${pct(terms.bonusBps)} bonus` : ""}. Gain so far: {moneyFine(gain, decimals)}.</p>
+            <p className="small muted">Matures in <span className="mono">{duration(Math.max(0, plan.maturesAt - now))}</span>. Then collect {grams(plan.goldOz)} of jewellery{fullyPaid ? ` plus a ${pct(terms.bonusBps)} bonus` : ""}. Gain so far: {moneyFine(gain, decimals)}.</p>
           )}
 
           <div className="btn-row">
@@ -145,7 +147,7 @@ function PlanView({ scheme, plan, history, lowOnStable, onChange }: { scheme: Sc
                 I received my jewellery
               </button>
             )}
-            {now > deliveryCloses && (
+            {chainNow > deliveryCloses && (
               <button className="btn" onClick={() => void run("Take the gold value in cash", scheme.address, abi, "cashOut", [plan.id]).then(onChange)}>
                 Not delivered: take gold value in cash
               </button>

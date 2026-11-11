@@ -1,6 +1,6 @@
 import { schemeAbi } from "../lib/abi";
 import { duration, moneyFine } from "../lib/format";
-import { useNow } from "../lib/hooks";
+import { useChainNow, useNow } from "../lib/hooks";
 import type { SchemeData } from "../lib/hooks";
 import { useTx } from "../lib/tx";
 import { useWallet } from "../lib/wallet";
@@ -12,10 +12,11 @@ export function Watch({ scheme, onChange }: { scheme: SchemeData; onChange: () =
   const { status, connect } = useWallet();
   const { run } = useTx();
   const now = useNow();
+  const chainNow = useChainNow();
   const { backing, decimals, flaggedAt, curesBy, defaulted } = scheme;
   const short = backing.bond < backing.requiredBond;
   const flagged = flaggedAt !== 0;
-  const repairOver = flagged && now >= curesBy;
+  const repairOver = flagged && chainNow !== null && chainNow >= curesBy;
   const tallyDone = scheme.tallyCursor > scheme.plans.length;
   const connected = status === "connected";
 
@@ -51,7 +52,7 @@ export function Watch({ scheme, onChange }: { scheme: SchemeData; onChange: () =
               ? short
                 ? "The jeweller did not repair the bond in time. Anyone can now declare default."
                 : "The jeweller repaired the bond. Anyone can clear the flag."
-              : <>The jeweller has <span className="mono">{duration(curesBy - now)}</span> to repair the bond. Until then, new payments are paused and customers can leave free.</>}
+              : <>The jeweller has <span className="mono">{duration(Math.max(0, curesBy - now))}</span> to repair the bond. Until then, new payments are paused and customers can leave free.</>}
           </div>
           <div className="btn-row">
             <button className="btn btn-danger" disabled={!connected || !repairOver || !short} onClick={() => act("Declare default", "declareDefault")}>Declare default</button>
