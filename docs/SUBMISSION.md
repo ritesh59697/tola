@@ -1,6 +1,6 @@
 # Submission answers
 
-Copy these into the form at https://hackathon.qie.digital. Fields marked *after launch* are filled in once Tola is on mainnet.
+Copy these into the form at https://hackathon.qie.digital. Only the demo video link is left for you to add.
 
 | Field | Answer |
 |---|---|
@@ -8,7 +8,8 @@ Copy these into the form at https://hackathon.qie.digital. Fields marked *after 
 | Track | Commerce & Real World |
 | Repository | https://github.com/ritesh59697/tola |
 | Live demo | https://ritesh59697.github.io/tola/ |
-| Contract address | *after launch*: the registry address in `contracts/deployments/1990.json` |
+| Contract address | 0x3884E9449F89Bcfb3aaC4667eBEf4E09536B3A60 (TolaRegistry, QIE Mainnet): https://mainnet.qie.digital/address/0x3884E9449F89Bcfb3aaC4667eBEf4E09536B3A60 |
+| Proof transaction | https://mainnet.qie.digital/tx/0xf8aa2b214917ec33fd0b0faf6bf105669c27000fb2cdbe65e5e095dd75cc7edf (a jeweller's attempt to take a customer's instalments, refused on-chain) |
 | Demo video | *your YouTube link* |
 | Team | Ritesh (student, solo) |
 

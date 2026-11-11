@@ -32,6 +32,10 @@ QIE_FOR_CUSTOMER="${QIE_FOR_CUSTOMER:-3.5}"
 GAS_RESERVE_QIE="${GAS_RESERVE_QIE:-0.3}"
 DEPLOY_RESERVE_QIE="${DEPLOY_RESERVE_QIE:-0.3}"
 REAL_SCHEME_COUNT="${REAL_SCHEME_COUNT:-11}"
+# Gas estimates for DEX swaps can come in just short, so swaps get this much headroom.
+GAS_BUFFER_BPS="${GAS_BUFFER_BPS:-15000}"
+# Set SKIP_SHARING=1 to resume after the QIE was already shared out.
+SKIP_SHARING="${SKIP_SHARING:-0}"
 
 DEPLOYER="$(cast wallet address --private-key "$DEPLOYER_KEY")"
 JEWELLER="$(cast wallet address --private-key "$JEWELLER_KEY")"
@@ -39,7 +43,8 @@ CUSTOMER="$(cast wallet address --private-key "$CUSTOMER_KEY")"
 CHAIN_ID="$(rpc_read cast chain-id --rpc-url "$RPC")"
 
 balance="$(rpc_read cast balance --rpc-url "$RPC" "$DEPLOYER" --ether)"
-need="$(python3 -c "print($QIE_FOR_JEWELLER + $QIE_FOR_CUSTOMER + $DEPLOY_RESERVE_QIE)")"
+if [ "$SKIP_SHARING" = "1" ]; then need="$DEPLOY_RESERVE_QIE"
+else need="$(python3 -c "print($QIE_FOR_JEWELLER + $QIE_FOR_CUSTOMER + $DEPLOY_RESERVE_QIE)")"; fi
 if ! python3 -c "import sys; sys.exit(0 if $balance >= $need else 1)"; then
   echo "Deployer $DEPLOYER holds $balance QIE and needs at least $need."
   exit 1
@@ -57,13 +62,21 @@ swap_for_stable() { # key, wallet, QIE amount
   minimum="$(python3 -c "print($quote * 97 // 100)")"
   now="$(rpc_read cast block --rpc-url "$RPC" latest --field timestamp)"
   deadline="$(python3 -c "print($now + 600)")"
-  send --private-key "$1" --value "$(cast to-wei "$3")" "$DEX_ROUTER" 'swapExactETHForTokens(uint256,address[],address,uint256)' "$minimum" "$path" "$2" "$deadline" >/dev/null
+  local held estimate
+  held="$(rpc_read cast call --rpc-url "$RPC" "$STABLECOIN" 'balanceOf(address)(uint256)' "$2" | cut -d' ' -f1)"
+  if [ "$held" != "0" ]; then echo "$2 already holds QUSDC, so its swap is skipped"; return 0; fi
+  estimate="$(rpc_read cast estimate --rpc-url "$RPC" --from "$2" --value "$(cast to-wei "$3")" "$DEX_ROUTER" 'swapExactETHForTokens(uint256,address[],address,uint256)' "$minimum" "$path" "$2" "$deadline")"
+  send --private-key "$1" --gas-limit "$(python3 -c "print($estimate * $GAS_BUFFER_BPS // 10000)")" --value "$(cast to-wei "$3")" "$DEX_ROUTER" 'swapExactETHForTokens(uint256,address[],address,uint256)' "$minimum" "$path" "$2" "$deadline" >/dev/null
   echo "Swapped $3 QIE to about $(python3 -c "print($quote / 10 ** $(rpc_read cast call --rpc-url "$RPC" "$STABLECOIN" 'decimals()(uint8)'))") QUSDC for $2"
 }
 
-step "Sharing out QIE"
-send --private-key "$DEPLOYER_KEY" --value "$(cast to-wei "$QIE_FOR_JEWELLER")" "$JEWELLER" >/dev/null
-send --private-key "$DEPLOYER_KEY" --value "$(cast to-wei "$QIE_FOR_CUSTOMER")" "$CUSTOMER" >/dev/null
+if [ "$SKIP_SHARING" = "1" ]; then
+  step "Sharing out QIE: skipped, already done"
+else
+  step "Sharing out QIE"
+  send --private-key "$DEPLOYER_KEY" --value "$(cast to-wei "$QIE_FOR_JEWELLER")" "$JEWELLER" >/dev/null
+  send --private-key "$DEPLOYER_KEY" --value "$(cast to-wei "$QIE_FOR_CUSTOMER")" "$CUSTOMER" >/dev/null
+fi
 
 step "Swapping QIE to QUSDC on QIEDEX"
 swap_for_stable "$JEWELLER_KEY" "$JEWELLER" "$(python3 -c "print($QIE_FOR_JEWELLER - $GAS_RESERVE_QIE)")"

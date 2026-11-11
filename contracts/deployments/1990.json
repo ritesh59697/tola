@@ -1,0 +1,8 @@
+{
+  "chainId": 1990,
+  "goldFeed": "0x9aD0199a67588ee293187d26bA1BE61cb07A214c",
+  "maxPriceAge": 304651,
+  "mocks": false,
+  "registry": "0x3884E9449F89Bcfb3aaC4667eBEf4E09536B3A60",
+  "stablecoin": "0x3F43DA82eC9A4f5285F10FaF1F26EcA7319E5DA5"
+}
