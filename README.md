@@ -11,7 +11,9 @@
 
 Track: **Commerce & Real World**. QIE Hackathon 3.0. Built by Ritesh, a student, solo.
 
-![The contract refusing a jeweller's attempt to take a customer's instalments](docs/refused.jpg)
+![QIE Mainnet explorer: the jeweller's wallet failed to call collect on a TolaScheme plan](docs/refused-mainnet.png)
+
+A real attempt on QIE Mainnet by the jeweller to take a customer's instalments. It reverted with `CustomerHasNotConfirmed(1)`. All three contracts' source is verified on the explorer.
 
 ## The problem
 
