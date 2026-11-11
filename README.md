@@ -5,11 +5,13 @@
 | | |
 |---|---|
 | Live app | https://ritesh59697.github.io/tola/ |
-| Demo video | `VIDEO_URL` |
+| Demo video (2.5 min) | https://ritesh59697.github.io/tola/tola-demo.mp4 |
 | Registry on QIE Mainnet | [0x3884E9449F89Bcfb3aaC4667eBEf4E09536B3A60](https://mainnet.qie.digital/address/0x3884E9449F89Bcfb3aaC4667eBEf4E09536B3A60) |
 | A jeweller's attempt failing on-chain | [0xf8aa2b21…cc7edf](https://mainnet.qie.digital/tx/0xf8aa2b214917ec33fd0b0faf6bf105669c27000fb2cdbe65e5e095dd75cc7edf): reverted with `CustomerHasNotConfirmed(1)` |
 
 Track: **Commerce & Real World**. QIE Hackathon 3.0. Built by Ritesh, a student, solo.
+
+The demo video was recorded by script on the live site against QIE Mainnet, with a synthetic voice. Every transaction in it is real; see [scripts/video](scripts/video).
 
 ![QIE Mainnet explorer: the jeweller's wallet failed to call collect on a TolaScheme plan](docs/refused-mainnet.png)
 

@@ -1,6 +1,6 @@
 # Submission answers
 
-Copy these into the form at https://hackathon.qie.digital. Only the demo video link is left for you to add.
+Copy these into the form at https://hackathon.qie.digital. Everything is filled in.
 
 | Field | Answer |
 |---|---|
@@ -10,7 +10,7 @@ Copy these into the form at https://hackathon.qie.digital. Only the demo video l
 | Live demo | https://ritesh59697.github.io/tola/ |
 | Contract address | 0x3884E9449F89Bcfb3aaC4667eBEf4E09536B3A60 (TolaRegistry, QIE Mainnet): https://mainnet.qie.digital/address/0x3884E9449F89Bcfb3aaC4667eBEf4E09536B3A60 |
 | Proof transaction | https://mainnet.qie.digital/tx/0xf8aa2b214917ec33fd0b0faf6bf105669c27000fb2cdbe65e5e095dd75cc7edf (a jeweller's attempt to take a customer's instalments, refused on-chain) |
-| Demo video | *your YouTube link* |
+| Demo video | https://ritesh59697.github.io/tola/tola-demo.mp4 |
 | Team | Ritesh (student, solo) |
 
 ## One-line description

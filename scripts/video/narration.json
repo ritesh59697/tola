@@ -1,0 +1,17 @@
+{
+ "problem": "Families across India save for weddings through a jeweller's monthly gold plan. The money goes straight to the shop. In 2019, the owners of Goodwin Jewellers reportedly vanished, owing about seven hundred people twenty-one crore rupees.",
+ "idea": "Tola is the same gold plan, with one change. The shop can't touch your money until you have your jewellery. It runs on QIE mainnet, with small demo amounts, and the gold price comes from QIE's oracle.",
+ "connect": "This is a demo plan, where one month is one minute. I'm the customer, and I connect my wallet.",
+ "join": "I join and pay my first instalment. The oracle's price locks a weight of gold at today's rate. It's in my passbook, and on the public record.",
+ "collect": "Now I'm the jeweller, and I want that money. Collect.",
+ "refused": "Refused, by the chain. The only thing that releases this money is the customer confirming they got their jewellery.",
+ "explorer": "That's a real failed transaction on QIE mainnet. Anyone can check it.",
+ "slider": "If gold rises, the customer's gain is covered by the jeweller's bond. This slider is only a simulation. Watch the required bond climb as gold moves.",
+ "pay": "A month later, I pay my next instalment. Now this jeweller's bond is too low for what customers are owed.",
+ "flag": "Anyone can flag that, without permission. The contract checks the facts, pauses payments, and gives the jeweller a window to repair the bond.",
+ "default": "The jeweller doesn't repair it. So anyone can declare default.",
+ "claim": "As the customer, I claim my money. I get back every dollar I paid, plus a share of the bond for any gold gain.",
+ "deliver": "And when things go right. On this plan, every instalment is paid. At the counter, I confirm I received my jewellery.",
+ "paid": "Now the jeweller collects, and is paid. An honest shop loses nothing, and gains a promise its customers can check.",
+ "close": "Tola, on QIE. Your jeweller can't run away with your gold savings. Try it at ritesh59697 dot github dot io, slash tola."
+}
