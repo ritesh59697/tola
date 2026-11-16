@@ -36,7 +36,7 @@ export function Watch({ scheme, onChange }: { scheme: SchemeData; onChange: () =
         <div className="stack" style={{ gap: 8 }}>
           <div className={`notice ${short ? "notice-warn" : ""}`}>
             {short
-              ? `The bond is ${moneyFine(backing.requiredBond - backing.bond, decimals)} short of what this scheme requires. You can flag it now.`
+              ? `The bond is ${moneyFine(backing.requiredBond - backing.bond, decimals)} short of what this plan requires. You can flag it now.`
               : "The bond meets the requirement, so the contract would refuse a flag."}
           </div>
           <div className="btn-row">
@@ -64,7 +64,7 @@ export function Watch({ scheme, onChange }: { scheme: SchemeData; onChange: () =
       {defaulted && (
         <div className="stack" style={{ gap: 8 }}>
           <div className="notice notice-bad">
-            This scheme is in default. Each customer can claim their full principal, plus their share of the bond for gold gains.
+            This plan is in default. Each customer can take back everything they paid, plus their share of the bond for gold gains.
             {!tallyDone && " Customers' gains need adding up first; the first claim does this, or you can do it here."}
           </div>
           <div className="btn-row">

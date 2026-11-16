@@ -110,7 +110,7 @@ function PlanView({ scheme, plan, history, lowOnStable, onChange }: { scheme: Sc
         <>
           {flagged && (
             <div className="notice notice-warn">
-              This scheme is flagged because the jeweller's bond is too low. New payments are paused, and you can leave now with no fee.
+              This plan is flagged because the jeweller's bond is too low. New payments are paused, and you can leave now with no fee.
             </div>
           )}
           {!fullyPaid && !flagged && (
@@ -205,14 +205,14 @@ export function Passbook({ scheme, history, onChange }: { scheme: SchemeData; hi
           {mine.length === 0 && (
             <p>
               Pay {money(terms.instalment, decimals)} every {duration(terms.period)}, {terms.instalmentCount} times.
-              Each one locks gold at that moment's oracle price.
+              Each one locks gold at QIE Oracle's live price at that moment.
             </p>
           )}
           {!scheme.backing.priceFresh && (
-            <div className="notice notice-warn">The oracle's gold price is too old to lock in. Joining opens again after its next update.</div>
+            <div className="notice notice-warn">QIE Oracle's gold price has not updated recently, so no gold can be locked right now. Joining opens again after its next update.</div>
           )}
-          {scheme.flaggedAt !== 0 && !scheme.defaulted && <div className="notice notice-warn">This scheme is flagged for a low bond, so it is not taking new customers.</div>}
-          {scheme.defaulted && <div className="notice">This scheme is in default and is closed to new customers.</div>}
+          {scheme.flaggedAt !== 0 && !scheme.defaulted && <div className="notice notice-warn">This plan is flagged for a low bond, so it is not taking new customers.</div>}
+          {scheme.defaulted && <div className="notice">This plan is in default and is closed to new customers.</div>}
           {!scheme.defaulted && (
             <div className="btn-row">
               <button
@@ -229,9 +229,9 @@ export function Passbook({ scheme, history, onChange }: { scheme: SchemeData; hi
 
       <p className="xs muted">
         This wallet holds {balance.data !== null && balance.data !== undefined ? moneyFine(balance.data, decimals) : "…"} {symbol}
-        {native.data !== null && native.data !== undefined ? ` and ${Number(formatEther(native.data)).toFixed(3)} ${network.currency.symbol} for gas` : ""}.
+        {native.data !== null && native.data !== undefined ? ` and ${Number(formatEther(native.data)).toFixed(3)} ${network.currency.symbol} for network fees` : ""}.
       </p>
-      {noGas && <div className="notice notice-warn">This wallet needs a little {network.currency.symbol} to pay for gas.</div>}
+      {noGas && <div className="notice notice-warn">This wallet needs a little {network.currency.symbol} to pay network fees.</div>}
       {lowOnStable && !noGas && <GetStable onDone={() => { void balance.refresh(); void native.refresh(); }} />}
     </div>
   );

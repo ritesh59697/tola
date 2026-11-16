@@ -13,12 +13,12 @@ import { GetStable } from "./GetStable";
 const abi = schemeAbi as unknown as string[];
 
 const stateText: Partial<Record<PlanState, string>> = {
-  [PlanState.Active]: "Not confirmed",
+  [PlanState.Active]: "Awaiting delivery",
   [PlanState.DeliveryConfirmed]: "Customer confirmed",
   [PlanState.Collected]: "Collected",
   [PlanState.Exited]: "Customer left",
   [PlanState.CashedOut]: "Paid out in cash",
-  [PlanState.ClaimedInDefault]: "Claimed in default",
+  [PlanState.ClaimedInDefault]: "Paid back after default",
 };
 
 export function Counter({ scheme, onChange }: { scheme: SchemeData; onChange: () => void }) {
@@ -89,7 +89,7 @@ export function Counter({ scheme, onChange }: { scheme: SchemeData; onChange: ()
         <h3 style={{ fontSize: "var(--text-base)", fontFamily: "var(--font-body)", fontWeight: 600, marginBottom: 8 }}>Customers' money</h3>
         <div className="table-scroll">
           <table className="ledger">
-            <caption className="visually-hidden">Customer plans in this scheme</caption>
+            <caption className="visually-hidden">Customer plans at this shop</caption>
             <thead>
               <tr><th>Plan</th><th>Customer</th><th className="num">Locked</th><th>Status</th><th><span className="visually-hidden">Action</span></th></tr>
             </thead>
@@ -150,7 +150,7 @@ export function Counter({ scheme, onChange }: { scheme: SchemeData; onChange: ()
       )}
 
       {isJeweller && balance.data !== null && balance.data !== undefined && (
-        <p className="xs muted">This wallet holds {moneyFine(balance.data, decimals)} {symbol}.{native.data === 0n ? " It needs a little QIE for gas." : ""}</p>
+        <p className="xs muted">This wallet holds {moneyFine(balance.data, decimals)} {symbol}.{native.data === 0n ? " It needs a little QIE for network fees." : ""}</p>
       )}
       {isJeweller && balance.data === 0n && native.data !== 0n && <GetStable onDone={() => void balance.refresh()} />}
     </div>

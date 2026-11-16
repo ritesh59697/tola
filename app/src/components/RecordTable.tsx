@@ -18,7 +18,7 @@ function describe(entry: HistoryEntry, decimals: number): string {
     case "Flagged": return `Flagged for a low bond: ${m(a.bond)} held, ${m(a.requiredBond)} required`;
     case "FlagCleared": return `Flag cleared: bond ${m(a.bond)}, required ${m(a.requiredBond)}`;
     case "Defaulted": return `Default declared, with bond at ${m(a.bond)}`;
-    case "ClaimedInDefault": return `Plan ${a.planId}: customer claimed ${m(a.principal)} principal and ${m(a.fromBond)} from the bond`;
+    case "ClaimedInDefault": return `Plan ${a.planId}: customer took back the ${m(a.principal)} they paid, plus ${m(a.fromBond)} from the bond`;
     case "ResidualBondReturned": return `Leftover bond of ${m(a.amount)} returned to the jeweller`;
     default: return entry.name;
   }
@@ -32,7 +32,7 @@ export function RecordTable({ history, decimals, loading }: { history: HistoryEn
       <p className="small muted" style={{ marginBottom: 12 }}>Everything that has happened to this plan's money, read from the chain.</p>
       <div className="table-scroll">
         <table className="ledger">
-          <caption className="visually-hidden">Scheme events, newest first</caption>
+          <caption className="visually-hidden">Plan events, newest first</caption>
           <thead><tr><th>When</th><th>What happened</th><th><span className="visually-hidden">Transaction</span></th></tr></thead>
           <tbody>
             {rows.map((row) => (

@@ -98,7 +98,7 @@ export function BackingPanel({ scheme }: { scheme: SchemeData }) {
         <span className="xs muted">
           Simulation only. {move !== 0 && p.requiredBond > b.bond
             ? `The jeweller would need ${money(p.requiredBond - b.bond, decimals)} more bond.`
-            : "The real price below comes from the oracle."}
+            : "The real price below comes from QIE Oracle."}
         </span>
       </div>
 

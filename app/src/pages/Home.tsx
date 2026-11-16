@@ -14,29 +14,76 @@ const cases = [
   { year: "2017", text: "Nathella Jewellery, Chennai. A 77-year-old jeweller shut shop in a cash crunch.", href: "https://business-standard.com/amp/article/companies/77-year-old-nathella-jewellery-shuts-shop-due-to-financial-crunch-117102400808_1.html" },
 ];
 
-function GoldCard() {
-  const { data: gold } = useGold();
+/**
+ * The hero: a passbook page filled in at QIE Oracle's live price. The monthly amount is a labelled example;
+ * every gram figure is worked out from the live price, so nothing on it is made up.
+ */
+function HeroPassbook() {
+  const { data: gold, error } = useGold();
   const rate = useRupeeRate();
   const now = useNow();
-  const per10g = gold ? (Number(gold.price) / 10 ** gold.decimals / settings.gramsPerTroyOunce) * 10 : null;
+  const { localPerMonth, monthsFilled, linesRuled } = settings.heroExample;
+  const perGram = gold ? Number(gold.price) / 10 ** gold.decimals / settings.gramsPerTroyOunce : null;
+  const gramsPerMonth = perGram !== null && rate !== null ? localPerMonth / (perGram * rate) : null;
+  const rupees = (v: number) => `₹${Math.round(v).toLocaleString("en-IN")}`;
+  const g = (v: number) => `${v.toFixed(2)} g`;
+  const lines = Array.from({ length: linesRuled }, (_, i) => (i < monthsFilled ? i + 1 : null));
+
   return (
-    <aside className="gold-card" aria-label="Live gold price">
-      <div className="label">Gold, 10 grams, from QIE Oracle</div>
-      <div className="figure">{per10g !== null ? `$${per10g.toLocaleString("en-US", { maximumFractionDigits: 2 })}` : "…"}</div>
-      {per10g !== null && rate !== null && (
-        <div className="small">about ₹{Math.round(per10g * rate).toLocaleString("en-IN")} <span className="muted">before Indian duty and GST</span></div>
-      )}
+    <figure className="passbook" aria-label="A gold savings passbook page, filled in at today's live gold price">
+      <div className="passbook-head">
+        <span className="passbook-title">Gold savings passbook</span>
+        <span className="xs muted">Tola, on QIE Mainnet</span>
+      </div>
+
+      <div className="passbook-rate">
+        <div className="label">Today's gold rate, 10 grams, from QIE Oracle</div>
+        <div className="figure">
+          {perGram !== null ? `$${(perGram * 10).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : error ? "–" : "…"}
+        </div>
+        {perGram !== null && rate !== null && (
+          <div className="small">about {rupees(perGram * 10 * rate)} <span className="muted">before Indian duty and GST</span></div>
+        )}
+        {!gold && (
+          <div className="small muted" role={error ? "alert" : undefined}>
+            {error ? "Could not reach QIE Oracle just now. Trying again." : "Reading the price from QIE Oracle…"}
+          </div>
+        )}
+      </div>
+
+      <table className="passbook-lines">
+        <caption className="xs muted">
+          {gramsPerMonth !== null
+            ? `Example: ${rupees(localPerMonth)} a month, each month locked at today's rate`
+            : `Example: ${rupees(localPerMonth)} a month. Grams appear once the live rates load.`}
+        </caption>
+        <thead>
+          <tr><th scope="col">Month</th><th scope="col" className="num">Paid</th><th scope="col" className="num">Gold locked</th><th scope="col" className="num">Total</th></tr>
+        </thead>
+        <tbody>
+          {lines.map((month, i) => (
+            <tr key={i}>
+              <td className="mono">{month ?? ""}</td>
+              <td className="num">{month ? rupees(localPerMonth) : ""}</td>
+              <td className="num gold-figure">{month && gramsPerMonth !== null ? g(gramsPerMonth) : month ? "…" : ""}</td>
+              <td className="num gold-figure">{month && gramsPerMonth !== null ? g(gramsPerMonth * month) : month ? "…" : ""}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="stamp" aria-hidden>Locked until you have<br />your jewellery</div>
+
       {gold && (
-        <p className="xs muted" style={{ marginTop: 12 }}>
-          Updated {duration(now - gold.updatedAt)} ago.{" "}
+        <figcaption className="xs muted">
+          Price updated {duration(now - gold.updatedAt)} ago.{" "}
           {deployment && (
             <a href={explorerAddress(deployment.goldFeed)} target="_blank" rel="noreferrer">
               Read the feed <ExternalLink size={12} className="icon-inline" aria-hidden />
             </a>
           )}
-        </p>
+        </figcaption>
       )}
-    </aside>
+    </figure>
   );
 }
 
@@ -146,7 +193,7 @@ export function Home() {
             </p>
           )}
         </div>
-        <GoldCard />
+        <HeroPassbook />
       </section>
 
       <section className="split">

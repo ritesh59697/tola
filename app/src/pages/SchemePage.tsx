@@ -49,7 +49,7 @@ export function SchemePage({ address }: { address: string }) {
     );
   }
 
-  const { terms, decimals } = scheme;
+  const { terms, decimals, symbol } = scheme;
   const shortTimers = terms.period < settings.shortTimerBelowSeconds;
 
   return (
@@ -74,6 +74,25 @@ export function SchemePage({ address }: { address: string }) {
             <Clock size={15} aria-hidden /> Demo timers: one month here is {duration(terms.period)}, and the jeweller has {duration(terms.cureWindow)} to repair the bond. Real plans use real months.
           </div>
         )}
+        <details className="words">
+          <summary className="small">What the words on this page mean</summary>
+          <dl className="kv small">
+            <dt>Contract</dt>
+            <dd>The code on QIE that holds the money and follows these rules. It has no owner, so neither the jeweller nor Tola can change it.</dd>
+            <dt>Bond</dt>
+            <dd>The jeweller's own money, locked here as a guarantee. It pays customers' gold gains and bonus if the jeweller fails, and the amount needed rises with gold.</dd>
+            <dt>Flag</dt>
+            <dd>Anyone can flag a plan whose bond is too low. The jeweller then has a set time to add more.</dd>
+            <dt>Default</dt>
+            <dd>The jeweller did not repair a flagged bond in time. Every customer then takes back what they paid, plus their share of the bond.</dd>
+            <dt>{symbol}</dt>
+            <dd>A digital US dollar on QIE, meant to stay worth $1. Instalments are paid in it.</dd>
+            <dt>QIE Oracle</dt>
+            <dd>The live gold price published on QIE. Each instalment locks gold at its price.</dd>
+            <dt>Network fee</dt>
+            <dd>A tiny amount of QIE paid for each transaction, also called gas.</dd>
+          </dl>
+        </details>
       </div>
 
       <div className="scheme-grid">

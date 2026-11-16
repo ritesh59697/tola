@@ -16,5 +16,10 @@
   "swapSlippageBps": 300,
   "swapDeadlineSeconds": 600,
   "txDismissMs": 6000,
-  "gasBufferBps": 15000
+  "gasBufferBps": 15000,
+  "heroExample": {
+    "localPerMonth": 5000,
+    "monthsFilled": 3,
+    "linesRuled": 6
+  }
 }

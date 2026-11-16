@@ -31,19 +31,19 @@ function explainRefusal(name: string, args: readonly unknown[]): string {
     case "CustomerHasNotConfirmed":
       return "The customer has not confirmed delivery, so this money cannot be taken.";
     case "BondBelowRequired":
-      return "That would leave the bond below what this scheme requires.";
+      return "That would leave the bond below what this plan requires.";
     case "NotJeweller":
-      return "Only this scheme's jeweller can do that.";
+      return "Only this plan's jeweller can do that.";
     case "NotPlanCustomer":
       return "Only the customer who owns this plan can do that.";
     case "SchemeInDefault":
-      return "This scheme is in default. Customers can now claim their money.";
+      return "This plan is in default. Customers can now take their money back.";
     case "SchemeNotInDefault":
-      return "This scheme is not in default.";
+      return "This plan is not in default.";
     case "SchemeUnderReview":
-      return `This scheme is flagged for a low bond. The jeweller has ${wait(0)} left to repair it.`;
+      return `This plan is flagged for a low bond. The jeweller has ${wait(0)} left to repair it.`;
     case "StalePrice":
-      return "The gold price from the oracle is too old to use. Please try again after its next update.";
+      return "QIE Oracle's gold price is too old to use. Please try again after its next update.";
     case "InvalidPrice":
       return "The gold price is not available right now.";
     case "PlanNotActive":
@@ -59,13 +59,13 @@ function explainRefusal(name: string, args: readonly unknown[]): string {
     case "DeliveryWindowOpen":
       return `The jeweller still has ${wait(0)} to deliver.`;
     case "BondCannotCoverGain":
-      return "The bond cannot cover this payout. Flag the scheme to start the default process.";
+      return "The bond cannot cover this payout. Flag the plan to start the default process.";
     case "BondIsSufficient":
-      return "The bond is sufficient, so the scheme cannot be flagged.";
+      return "The bond is sufficient, so the plan cannot be flagged.";
     case "AlreadyFlagged":
-      return "This scheme is already flagged.";
+      return "This plan is already flagged.";
     case "NotFlagged":
-      return "This scheme is not flagged.";
+      return "This plan is not flagged.";
     case "CureWindowOpen":
       return `The jeweller still has ${wait(0)} to repair the bond.`;
     case "TallyIncomplete":
@@ -73,7 +73,7 @@ function explainRefusal(name: string, args: readonly unknown[]): string {
     case "ClaimsOutstanding":
       return "Some customers have not claimed yet.";
     case "TermsOutsideLimits":
-      return "These terms are outside the limits every scheme must respect.";
+      return "These terms are outside the limits every plan must respect.";
     case "ERC20InsufficientBalance":
       return "This wallet does not hold enough for this payment.";
     case "ERC20InsufficientAllowance":
@@ -114,7 +114,7 @@ export function explainError(error: unknown): { refused: boolean; message: strin
     }
   }
   const message = (error as { shortMessage?: string; message?: string }).shortMessage ?? (error as Error).message ?? "";
-  if (/insufficient funds/i.test(message)) return { refused: false, message: "This wallet needs a little QIE to pay for gas." };
+  if (/insufficient funds/i.test(message)) return { refused: false, message: "This wallet needs a little QIE to pay network fees." };
   if (/transfer amount exceeds|ERC20InsufficientBalance/i.test(message)) return { refused: true, message: "Not enough balance in this wallet." };
   return { refused: false, message: message.slice(0, 160) || "Something went wrong." };
 }
