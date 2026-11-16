@@ -2,9 +2,11 @@ import { ExternalLink } from "lucide-react";
 import { deployment, explorerAddress, explorerTx, proofs, settings } from "../config";
 import { StatusPill } from "../components/BackingPanel";
 import { registry } from "../lib/chain";
-import { duration, money, pct } from "../lib/format";
+import { duration, money, moneyFine, pct } from "../lib/format";
 import { readScheme, useGold, useNow, usePolled, useRupeeRate } from "../lib/hooks";
 import type { SchemeData } from "../lib/hooks";
+import { summarizeUsage } from "../lib/usage";
+import type { Split } from "../lib/usage";
 
 const cases = [
   { year: "2019", text: "Goodwin Jewellers, Thane. Owners reportedly vanished, with about 700 people owed Rs 21 crore.", href: "https://www.theweek.in/news/biz-tech/2019/10/28/case-untraceable-keralite-promoters-goodwin-jewellers-thane.html" },
@@ -52,18 +54,26 @@ function SchemeRow({ scheme }: { scheme: SchemeData }) {
         {backing.lockedPrincipal > 0n && <span className="muted"> · {pct(backing.coverageBps)} backed</span>}
       </div>
       <div><StatusPill scheme={scheme} now={now} /></div>
+      {scheme.defaulted && scheme.plans.length > 0 && (
+        <p className="xs muted scheme-note">
+          This plan went through a default: {scheme.plans.length - scheme.unclaimedPlans} of {scheme.plans.length} customer plan{scheme.plans.length === 1 ? "" : "s"} took their money back from the contract.
+        </p>
+      )}
     </a>
   );
 }
 
-function LivePlans() {
-  const { data: schemes, error } = usePolled<SchemeData[]>(async () => {
+/** Every scheme in the registry, newest first. The plan list and the usage panel share this one read. */
+function useAllSchemes() {
+  return usePolled<SchemeData[]>(async () => {
     const c = registry();
     if (!c) return [];
     const addresses: string[] = await c.schemes();
     return Promise.all([...addresses].reverse().map(readScheme));
   }, []);
+}
 
+function LivePlans({ schemes, error }: { schemes: SchemeData[] | null; error: string | null }) {
   if (!deployment) return <p className="muted">Tola is not deployed on this network yet.</p>;
   if (error && !schemes) return <div className="notice notice-bad" role="alert">Could not reach the chain just now. Trying again.</div>;
   if (!schemes) return <p className="muted">Reading plans from the chain…</p>;
@@ -71,7 +81,50 @@ function LivePlans() {
   return <div className="scheme-rows">{schemes.map((s) => <SchemeRow key={s.address} scheme={s} />)}</div>;
 }
 
+function UsageRow({ label, value }: { label: string; value: Split<string> }) {
+  return (
+    <tr>
+      <td>{label}</td>
+      <td className="num">{value.outside}</td>
+      <td className="num muted">{value.demo}</td>
+    </tr>
+  );
+}
+
+const counts = (v: Split<number>): Split<string> => ({ outside: String(v.outside), demo: String(v.demo) });
+
+function Usage({ schemes }: { schemes: SchemeData[] | null }) {
+  if (!deployment || !schemes) return <p className="muted">Reading from the chain…</p>;
+  const u = summarizeUsage(schemes, deployment.demoWallets ?? []);
+  const dollars = (v: Split<bigint>): Split<string> => ({ outside: moneyFine(v.outside, u.decimals), demo: moneyFine(v.demo, u.decimals) });
+  return (
+    <div className="stack" style={{ gap: 12 }}>
+      <p className="small">
+        Counted live from the contracts on QIE Mainnet. Activity from the Tola team's own demo wallets is kept in its own column, so it is never shown as real usage.
+        {u.customers.outside === 0 ? " No outside wallet has joined a plan yet." : ""}
+      </p>
+      <div className="table-scroll">
+        <table className="ledger">
+          <thead>
+            <tr><th scope="col">On the chain</th><th scope="col" className="num">Outside wallets</th><th scope="col" className="num">Tola team demos</th></tr>
+          </thead>
+          <tbody>
+            <UsageRow label="Shops' plans opened" value={counts(u.schemes)} />
+            <UsageRow label="Customer wallets" value={counts(u.customers)} />
+            <UsageRow label="Customer plans joined" value={counts(u.plans)} />
+            <UsageRow label="Instalments paid" value={counts(u.instalments)} />
+            <UsageRow label="Paid in" value={dollars(u.paidIn)} />
+            <UsageRow label="Delivered, then the jeweller was paid" value={counts(u.delivered)} />
+            <UsageRow label="Paid back after a default" value={counts(u.refundedInDefault)} />
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 export function Home() {
+  const { data: schemes, error } = useAllSchemes();
   return (
     <>
       <section className="hero">
@@ -126,7 +179,12 @@ export function Home() {
 
       <section className="split" id="plans">
         <h2>Live plans</h2>
-        <LivePlans />
+        <LivePlans schemes={schemes} error={error} />
+      </section>
+
+      <section className="split" id="usage">
+        <h2>Use so far</h2>
+        <Usage schemes={schemes} />
       </section>
 
       {proofs.length > 0 && (

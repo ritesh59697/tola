@@ -22,6 +22,8 @@ export interface Deployment {
   goldFeed: string;
   maxPriceAge: number;
   mocks: boolean;
+  /** The project's own wallets. The site counts their activity apart from everyone else's. */
+  demoWallets?: string[];
 }
 
 export interface Proof {

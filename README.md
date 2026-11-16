@@ -5,13 +5,22 @@
 | | |
 |---|---|
 | Live app | https://ritesh59697.github.io/tola/ |
-| Demo video (2.5 min) | https://ritesh59697.github.io/tola/tola-demo.mp4 |
+| Demo video (under 3 min) | https://ritesh59697.github.io/tola/tola-demo.mp4 |
 | Registry on QIE Mainnet | [0x3884E9449F89Bcfb3aaC4667eBEf4E09536B3A60](https://mainnet.qie.digital/address/0x3884E9449F89Bcfb3aaC4667eBEf4E09536B3A60) |
 | A jeweller's attempt failing on-chain | [0xf8aa2b21…cc7edf](https://mainnet.qie.digital/tx/0xf8aa2b214917ec33fd0b0faf6bf105669c27000fb2cdbe65e5e095dd75cc7edf): reverted with `CustomerHasNotConfirmed(1)` |
 
 Track: **Commerce & Real World**. QIE Hackathon 3.0. Built by Ritesh, a student, solo.
 
 The demo video was recorded by script on the live site against QIE Mainnet, with a synthetic voice and captions. Every transaction in it is real; see [scripts/video](scripts/video).
+
+## Judges: start here
+
+| Path | Time | What you need | What you'll see |
+|---|---|---|---|
+| **A. Watch** | 3 min | Nothing | [The demo video](https://ritesh59697.github.io/tola/tola-demo.mp4): a customer joins, the jeweller's grab is refused, a short bond is flagged, default pays the customer back, and an honest delivery pays the jeweller. Every transaction in it is real, on mainnet. |
+| **B. Check it, no wallet** | 2 min | A browser | 1. Open [the refused transaction](https://mainnet.qie.digital/tx/0xf8aa2b214917ec33fd0b0faf6bf105669c27000fb2cdbe65e5e095dd75cc7edf): the jeweller's wallet calls `collect` and the chain reverts it. 2. On [the site](https://ritesh59697.github.io/tola/), see the live plans and **Use so far**, counted from the contracts with our demo wallets kept apart. 3. Read the verified source on the [explorer](https://mainnet.qie.digital/address/0x3884E9449F89Bcfb3aaC4667eBEf4E09536B3A60). |
+| **C. Try it** | 5 min | [QIE Wallet](https://www.qiewallet.me) with about 1 QIE, for gas and the swap | Open the [Meera Gold House demo plan](https://ritesh59697.github.io/tola/#/scheme/0x25Dd946DB8EBD400A65DcDE52F2332C8148A998B). If you have no QUSDC, the page swaps QIE for it on QIEDEX. Join for $0.05; a month is one minute on demo plans. Then open **Jeweller's counter** and see why nobody but the customer can release that money. |
+| **D. Read the code** | 10 min | GitHub | Start with [the walkthrough](docs/WALKTHROUGH.md), then [`TolaScheme.sol`](contracts/src/TolaScheme.sol). `collect` is the line the whole product rests on. |
 
 ![QIE Mainnet explorer: the jeweller's wallet failed to call collect on a TolaScheme plan](docs/refused-mainnet.png)
 

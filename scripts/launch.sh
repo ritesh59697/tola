@@ -86,6 +86,15 @@ step "Deploying the registry"
 forge script script/Deploy.s.sol --rpc-url "$RPC" --broadcast --slow --silent
 export REGISTRY="$(python3 -c "import json;print(json.load(open('deployments/$CHAIN_ID.json'))['registry'])")"
 echo "Registry $REGISTRY"
+# Record the project's own wallets, so the site can count outside usage separately from demo activity.
+python3 - "$CHAIN_ID" "$DEPLOYER" "$JEWELLER" "$CUSTOMER" <<'PY2'
+import json, sys
+chain, *wallets = sys.argv[1:]
+path = f"deployments/{chain}.json"
+data = json.load(open(path))
+data["demoWallets"] = wallets
+json.dump(data, open(path, "w"), indent=2)
+PY2
 
 last_scheme() { cast call --rpc-url "$RPC" "$REGISTRY" 'schemesOf(address)(address[])' "$JEWELLER" | tr -d '[]' | awk -F', ' '{print $NF}'; }
 
