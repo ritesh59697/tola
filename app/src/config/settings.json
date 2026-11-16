@@ -15,5 +15,6 @@
   "logMaxChunks": 12,
   "swapSlippageBps": 300,
   "swapDeadlineSeconds": 600,
-  "txDismissMs": 6000
+  "txDismissMs": 6000,
+  "gasBufferBps": 15000
 }

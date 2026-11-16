@@ -167,10 +167,12 @@ export function TxProvider({ children, onSettled }: { children: ReactNode; onSet
         const signer = await getSigner();
         const contract = new Contract(address, abi, signer);
         // forceOnChain skips the pre-flight check so a refusal lands on the chain for all to see.
-        const overrides = {
-          ...(options.forceOnChain ? { gasLimit: BigInt(settings.forcedRevertGasLimit) } : {}),
-          ...(options.value !== undefined ? { value: options.value } : {}),
-        };
+        const value = options.value !== undefined ? { value: options.value } : {};
+        // Gas estimates can come in just short (a DEX swap ran out of gas on mainnet), so normal sends get headroom.
+        const gasLimit = options.forceOnChain
+          ? BigInt(settings.forcedRevertGasLimit)
+          : ((await contract[method].estimateGas(...args, value)) * BigInt(settings.gasBufferBps)) / 10_000n;
+        const overrides = { gasLimit, ...value };
         const response: TransactionResponse = await contract[method](...args, overrides);
         hash = response.hash;
         update(id, { phase: "pending", hash });
