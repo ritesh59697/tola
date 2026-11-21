@@ -259,7 +259,11 @@ export function Passbook({ scheme, history, onChange }: { scheme: SchemeData; hi
         This wallet holds {balance.data !== null && balance.data !== undefined ? moneyFine(balance.data, decimals) : "…"} {symbol}
         {native.data !== null && native.data !== undefined ? ` and ${Number(formatEther(native.data)).toFixed(3)} ${network.currency.symbol} for network fees` : ""}.
       </p>
-      {noGas && <div className="notice notice-warn">This wallet needs a little {network.currency.symbol} to pay network fees.</div>}
+      {noGas && (
+        <div className="notice notice-warn">
+          This wallet needs a little {network.currency.symbol} to pay network fees. <a href="#/join">How to get {network.currency.symbol}</a>
+        </div>
+      )}
       {lowOnStable && !noGas && <GetStable onDone={() => { void balance.refresh(); void native.refresh(); }} />}
     </div>
   );
