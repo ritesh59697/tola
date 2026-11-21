@@ -5,6 +5,7 @@ import { WalletProvider } from "./lib/wallet";
 import { TxTray } from "./components/TxTray";
 import { WalletButton } from "./components/WalletButton";
 import { Home } from "./pages/Home";
+import { Join } from "./pages/Join";
 import { OpenScheme } from "./pages/OpenScheme";
 import { SchemePage } from "./pages/SchemePage";
 
@@ -32,6 +33,7 @@ export function App() {
           <header className="topbar">
             <a className="wordmark" href="#/">Tola</a>
             <div className="topbar-right">
+              <a className="small" href="#/join">Join a plan</a>
               <a className="small" href="#/open">Open a plan</a>
               <WalletButton />
             </div>
@@ -45,7 +47,7 @@ export function App() {
           </div>
         )}
         <main className="shell">
-          {schemeMatch ? <SchemePage address={schemeMatch[1]} /> : route === "open" ? <OpenScheme /> : <Home />}
+          {schemeMatch ? <SchemePage address={schemeMatch[1]} /> : route === "open" ? <OpenScheme /> : route === "join" ? <Join /> : <Home />}
         </main>
         <TxTray />
       </TxProvider>

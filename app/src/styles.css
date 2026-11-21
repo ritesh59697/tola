@@ -277,3 +277,22 @@ button, input { font: inherit; }
 .words .kv { grid-template-columns: 8rem minmax(0, 1fr); margin-top: var(--s2); }
 .words .kv dt { color: var(--text); font-weight: 600; }
 .words .kv dd { font-family: var(--font-body); text-align: left; font-feature-settings: normal; }
+
+/* Join guide */
+.lang-toggle { display: inline-flex; border: 1px solid var(--border-strong); border-radius: var(--r); overflow: hidden; margin-bottom: var(--s4); }
+.lang-toggle button { font: inherit; font-size: var(--text-sm); padding: var(--s1) var(--s3); background: transparent; color: var(--text); border: 0; cursor: pointer; }
+.lang-toggle button + button { border-left: 1px solid var(--border-strong); }
+.lang-toggle button.active { background: var(--accent); color: var(--accent-fg); }
+.join-list { margin: 0; padding-left: 1.2rem; max-width: 44rem; }
+.join-list li { padding: var(--s1) 0; }
+.share-grid { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s6); align-items: start; }
+.join-card { width: 340px; max-width: 100%; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--r-lg); padding: var(--s5); }
+.join-card-head { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: var(--s2); border-bottom: 2px solid var(--border-strong); margin-bottom: var(--s3); }
+.join-card-tagline { font-family: var(--font-display); font-size: var(--text-base); line-height: 1.3; margin: 0 0 var(--s1); }
+.join-qr { margin: var(--s4) auto; max-width: 100%; }
+.join-qr svg { width: 100%; height: 100%; display: block; }
+.join-card-steps { margin: 0; padding-left: 1.2rem; font-size: var(--text-sm); }
+.join-card-steps li { padding: var(--s1) 0; }
+.join-card-steps li span { display: block; }
+.join-card-url { margin-top: var(--s3); text-align: center; word-break: break-all; }
+@media (max-width: 860px) { .share-grid { grid-template-columns: 1fr; } }

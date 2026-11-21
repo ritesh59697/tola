@@ -21,5 +21,17 @@
     "localPerMonth": 5000,
     "monthsFilled": 3,
     "linesRuled": 6
+  },
+  "joinKit": {
+    "walletExtensionUrl": "https://chromewebstore.google.com/detail/qie-wallet-and-domain-res/oljchdcgmibnjbbopolafbjncfhdacjb",
+    "qieToGet": 1,
+    "qieToSwap": 0.8,
+    "exchanges": [
+      "MEXC",
+      "BingX",
+      "LBank"
+    ],
+    "cardImage": "tola-join-card.png",
+    "qrSizePx": 220
   }
 }

@@ -24,6 +24,8 @@ export interface Deployment {
   mocks: boolean;
   /** The project's own wallets. The site counts their activity apart from everyone else's. */
   demoWallets?: string[];
+  /** The plan the join guide sends new people to: real months, small instalments. */
+  joinPlan?: string;
 }
 
 export interface Proof {

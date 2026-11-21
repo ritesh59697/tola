@@ -184,6 +184,9 @@ export function Home() {
             <button className="btn" onClick={() => document.getElementById("plans")?.scrollIntoView({ behavior: "smooth" })}>See a live plan</button>
             <a className="btn btn-quiet" href="#/open">Open a plan for your shop</a>
           </div>
+          <p className="small" style={{ marginTop: 16 }}>
+            Try it with your own wallet: <a href="#/join">join a real-months plan in about 10 minutes</a>, with a guide in English and Hindi.
+          </p>
           {proofs[0] && (
             <p className="small" style={{ marginTop: 16 }}>
               No wallet needed to check it:{" "}

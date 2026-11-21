@@ -10,6 +10,7 @@ import { useWallet } from "../lib/wallet";
 import { GetStable } from "./GetStable";
 import { formatEther } from "ethers";
 import { network } from "../config";
+import { instalmentReminder, remindable } from "../lib/reminder";
 
 const abi = schemeAbi as unknown as string[];
 
@@ -49,6 +50,27 @@ function PlanView({ scheme, plan, history, lowOnStable, onChange }: { scheme: Sc
       : payout.name === "CashedOut"
         ? (payout.args.paid as bigint)
         : (payout.args.refund as bigint);
+
+  const saveReminder = () => {
+    // If this instalment is already open, remind from the next one.
+    const openNow = chainNow >= nextDue;
+    const firstOpen = openNow ? nextDue + terms.period : nextDue;
+    const remaining = terms.instalmentCount - plan.paidCount - (openNow ? 1 : 0);
+    if (remaining <= 0) return;
+    const file = instalmentReminder({
+      shopName: scheme.shopName,
+      firstOpen,
+      periodSeconds: terms.period,
+      graceSeconds: terms.gracePeriod,
+      remaining,
+      url: window.location.href,
+    });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob([file], { type: "text/calendar" }));
+    link.download = "tola-instalments.ics";
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  };
 
   const claim = async () => {
     if (scheme.tallyCursor <= scheme.plans.length) {
@@ -129,6 +151,12 @@ function PlanView({ scheme, plan, history, lowOnStable, onChange }: { scheme: Sc
                 </button>
               </div>
             )
+          )}
+
+          {!fullyPaid && !flagged && remindable(terms.period) && chainNow <= lastDue && (
+            <button className="link-button small" style={{ alignSelf: "flex-start" }} onClick={() => saveReminder()}>
+              Add a reminder for each instalment to your calendar
+            </button>
           )}
 
           {matured && chainNow <= deliveryCloses && (
