@@ -66,7 +66,7 @@ There's no backend, no owner, no admin key and no upgrade path. See the [code wa
 |---|---|---|
 | **QIE Oracle** | `latestRoundData` on the XAUt feed locks each instalment's grams and sets the required bond | Tola has no gold price, so no product |
 | **QUSDC** | Instalments and bonds are held in it | No money to lock |
-| **QIE Wallet** | Found through EIP-6963 (`me.qiewallet`) first, per QIE's integration guide | Other wallets still work |
+| **QIE Wallet** | Found through EIP-6963 (`me.qiewallet`) first, per QIE's integration guide. Tested end to end with the real extension on mainnet: connect, QIEDEX swap, approve, [join](https://mainnet.qie.digital/tx/0xaff6cbb64e827cd5515f33fd3a20f7df4e62374028a9d8270ac297f01f27ee10) | Other wallets still work |
 | **QIE ID** | `.qie` names are shown for jewellers through the reverse resolver, only if they resolve back to the same address | Addresses show instead |
 | **QIEDEX** | In-app swap from QIE to QUSDC, with live quotes from `getAmountsOut` | Customers must swap elsewhere |
 
@@ -78,6 +78,7 @@ There's no backend, no owner, no admin key and no upgrade path. See the [code wa
 - **Oracle failure can't trap customers.** `exit` never reads the oracle, and the feed read is wrapped so a broken feed can't block default or claims.
 - **Price age is measured, not guessed.** The deploy script reads the feed's real history and sets the tolerance from the longest gap between updates.
 - **Default can't be blocked by plan count.** Gains are added up in batches, by anyone.
+- **Works around a QIE Wallet gas-estimate bug.** QIE Wallet drops `from` from `eth_estimateGas`, so any call that depends on the sender (an approval, a payment) is estimated as if address zero sent it and fails before the wallet opens. The site now estimates and replays failures through its own QIE node with the real sender, and asks the wallet only to sign. Found by joining with the real extension; fix in [`app/src/lib/tx.tsx`](app/src/lib/tx.tsx).
 - **Limits on jewellers.** The registry caps exit fees and price age and sets a minimum bond, so a shop can't hollow out the promise.
 
 ## Notes for the QIE team
@@ -87,7 +88,8 @@ Things found while building, in case they're useful:
 1. The gold feed's docs say it updates "every few minutes". On 2026-11-09 the longest gap across its last 100 rounds was about 56 hours, and one recent gap was 9.6 hours. It may pause when markets close. Worth stating in the docs, since contracts using a short staleness check would stop working.
 2. The gold feed doesn't exist on testnet (1983), so oracle apps can't be tested there as the quickstart suggests.
 3. `qie-lend-sdk`'s README labels `0x3EcD…E542` as QUSDC, but it's the lending market's `qQUSDC` token. QUSDC is `0x3F43…5DA5`.
-4. The site says 2M+ transactions; the explorer's stats API showed 527,694 on 2026-11-09.
+4. QIE Wallet's `eth_estimateGas` ignores `from`. On 2026-11-21, estimating `approve(spender, amount)` on QUSDC through the extension returned `execution reverted` while `eth_call` and the public RPC (with `from`) worked. The public RPC returns the same revert, `ERC20InvalidApprover(0x0)`, when `from` is missing. Any dApp that lets the wallet estimate approvals or payments will fail for QIE Wallet users; swaps and other calls that don't depend on the sender still work, which hides the bug.
+5. The site says 2M+ transactions; the explorer's stats API showed 527,694 on 2026-11-09.
 
 ## Known limits
 
@@ -98,6 +100,7 @@ This is a hackathon project. The contracts have no outside audit, and no real je
 - **QUSDC is assumed to be worth $1.** Fee-on-transfer tokens aren't supported.
 - **Rupee on-ramp is missing,** which is the biggest gap to real families using it.
 - **Regulation.** Indian rules on jewellers' schemes need legal review. We don't claim compliance.
+- **Jeweller actions not yet run in QIE Wallet.** Collect, add to bond and withdraw from bond were tested with scripts, not through the extension.
 - **Prices are international spot,** not an Indian shop's rate with duty, GST and making charges.
 
 ## Built with AI assistance
