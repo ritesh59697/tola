@@ -6,6 +6,7 @@ import { settings } from "../config";
 import { erc20Abi, registryAbi, schemeAbi } from "./abi";
 import { duration } from "./format";
 import { useWallet } from "./wallet";
+import { reader } from "./chain";
 
 export type TxPhase = "wallet" | "pending" | "confirmed" | "refused" | "failed";
 
@@ -168,10 +169,13 @@ export function TxProvider({ children, onSettled }: { children: ReactNode; onSet
         const contract = new Contract(address, abi, signer);
         // forceOnChain skips the pre-flight check so a refusal lands on the chain for all to see.
         const value = options.value !== undefined ? { value: options.value } : {};
+        // Estimate through Tola's own node with the real sender: QIE Wallet drops "from" when it estimates,
+        // so anything that depends on who is sending (an approval, a payment) looked like a refusal.
+        const call = { from: await signer.getAddress(), to: address, data: contract.interface.encodeFunctionData(method, args), ...value };
         // Gas estimates can come in just short (a DEX swap ran out of gas on mainnet), so normal sends get headroom.
         const gasLimit = options.forceOnChain
           ? BigInt(settings.forcedRevertGasLimit)
-          : ((await contract[method].estimateGas(...args, value)) * BigInt(settings.gasBufferBps)) / 10_000n;
+          : ((await reader.estimateGas(call)) * BigInt(settings.gasBufferBps)) / 10_000n;
         const overrides = { gasLimit, ...value };
         const response: TransactionResponse = await contract[method](...args, overrides);
         hash = response.hash;
@@ -188,7 +192,8 @@ export function TxProvider({ children, onSettled }: { children: ReactNode; onSet
           let explanation = explainError(error);
           try {
             const signer = await getSigner();
-            await new Contract(address, abi, signer)[method].staticCall(...args, options.value !== undefined ? { value: options.value } : {});
+            const data = new Interface(abi).encodeFunctionData(method, args);
+            await reader.call({ from: await signer.getAddress(), to: address, data, ...(options.value !== undefined ? { value: options.value } : {}) });
           } catch (replay) {
             explanation = explainError(replay);
           }
